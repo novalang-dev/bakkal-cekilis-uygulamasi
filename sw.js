@@ -1,4 +1,4 @@
-const CACHE_NAME = 'suzener-market-v4.5'; // Önbelleği tazelemek için v4 yaptık
+const CACHE_NAME = 'suzener-market-v5'; // Önbelleği tazelemek için v5 yaptık
 const ASSETS = [
   '/',
   '/index.html',

@@ -52,7 +52,7 @@
     /* Ball float animation inside fanus */
     @keyframes floatBall {
       0% { transform: translate(0, 0) rotate(0deg); }
-      50% { transform: translate(12px, -14px) rotate(180deg); }
+      50% { transform: translate(10px, -12px) rotate(180deg); }
       100% { transform: translate(0, 0) rotate(360deg); }
     }
     .floating-ball {
@@ -80,7 +80,7 @@
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col justify-between p-2 sm:p-3 overflow-hidden selection:bg-amber-500 selection:text-slate-950">
 
-  <!-- Küçültülmüş ve Çakışması Engellenmiş Üst Header -->
+  <!-- Üst Header -->
   <header class="w-full max-w-md mx-auto flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl px-3 py-2 shadow-xl backdrop-blur-md flex-shrink-0 gap-2">
     <div class="flex items-center gap-2 min-w-0 flex-1">
       <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950 font-black text-sm flex-shrink-0">
@@ -97,13 +97,13 @@
     </div>
   </header>
 
-  <main id="drawContent" class="w-full max-w-md mx-auto my-auto flex flex-col items-center justify-center gap-2.5 sm:gap-3 py-1 overflow-hidden flex-1">
+  <main id="drawContent" class="w-full max-w-md mx-auto my-auto flex flex-col items-center justify-center gap-2.5 py-1 overflow-hidden flex-1">
     
     <!-- Fanus & Draw Card -->
-    <div class="w-full bg-slate-900/90 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-5 shadow-2xl relative flex flex-col items-center justify-center">
+    <div class="w-full bg-slate-900/90 border-2 border-amber-500/40 rounded-3xl p-3 sm:p-4 shadow-2xl relative flex flex-col items-center justify-center">
       
       <!-- Top Status Info -->
-      <div class="w-full flex items-center justify-between mb-2 px-1 flex-shrink-0">
+      <div class="w-full flex items-center justify-between mb-1.5 px-1 flex-shrink-0">
         <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> AKTİF SİSTEM
         </span>
@@ -112,34 +112,28 @@
         </span>
       </div>
 
-      <!-- Tıklanabilir Cam Fanus Container -->
-      <div id="fanusContainer" class="fanus-bowl w-44 h-44 sm:w-56 sm:h-56 rounded-full relative overflow-hidden flex items-center justify-center my-2 cursor-pointer hover:scale-[1.02] active:scale-95 transition-all shadow-2xl group">
-        <div class="absolute top-3 left-6 w-14 h-7 bg-white/10 rounded-full blur-md transform -rotate-45 pointer-events-none z-20"></div>
+      <!-- Tıklanabilir Cam Fanus Container (Boyutu küçültüldü, taşma önlendi) -->
+      <div id="fanusContainer" class="fanus-bowl w-36 h-36 sm:w-48 sm:h-48 rounded-full relative overflow-hidden flex items-center justify-center my-1 cursor-pointer hover:scale-[1.02] active:scale-95 transition-all shadow-2xl group">
+        <div class="absolute top-2 left-4 w-12 h-6 bg-white/10 rounded-full blur-md transform -rotate-45 pointer-events-none z-20"></div>
 
         <div class="absolute inset-2 flex flex-wrap items-center justify-center gap-1 p-2 overflow-hidden pointer-events-none opacity-95">
-          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-amber-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-rose-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.6s;"></div>
-          <div class="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-emerald-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.2s;"></div>
-          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-sky-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.3s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-purple-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.5s;"></div>
-          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-amber-300 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.9s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-indigo-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.8s;"></div>
-          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-teal-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.4s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-pink-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.1s;"></div>
-          <div class="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-orange-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.7s;"></div>
-          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-cyan-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.6s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-lime-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.2s;"></div>
-          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-fuchsia-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.3s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-yellow-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.8s;"></div>
-          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-violet-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.9s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-red-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.5s;"></div>
-          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-blue-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.4s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 2.1s;"></div>
+          <div class="w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full bg-amber-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0s;"></div>
+          <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-rose-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.6s;"></div>
+          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-emerald-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.2s;"></div>
+          <div class="w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full bg-sky-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.3s;"></div>
+          <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-purple-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.5s;"></div>
+          <div class="w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full bg-amber-300 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.9s;"></div>
+          <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-indigo-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.8s;"></div>
+          <div class="w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full bg-teal-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.4s;"></div>
+          <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-pink-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.1s;"></div>
+          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-orange-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.7s;"></div>
+          <div class="w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full bg-cyan-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.6s;"></div>
+          <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-lime-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.2s;"></div>
         </div>
 
-        <div class="absolute z-10 text-center bg-slate-950/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-amber-500/50 shadow-xl group-hover:border-amber-400 transition-colors">
-          <p class="text-[11px] font-black text-amber-400 tracking-wide">ÇEKMEK İÇİN DOKUN!</p>
-          <p class="text-[9px] font-bold text-slate-300">10 TL At & Fanusa Bas</p>
+        <div class="absolute z-10 text-center bg-slate-950/90 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-amber-500/50 shadow-xl group-hover:border-amber-400 transition-colors">
+          <p class="text-[10px] font-black text-amber-400 tracking-wide">ÇEKMEK İÇİN DOKUN!</p>
+          <p class="text-[8px] font-bold text-slate-300">10 TL At & Fanusa Bas</p>
         </div>
       </div>
 
