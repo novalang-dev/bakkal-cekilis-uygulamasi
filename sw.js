@@ -1,4 +1,4 @@
-const CACHE_NAME = 'suzener-market-v15';
+const CACHE_NAME = 'suzener-market-v16';
 const ASSETS = [
   './',
   './index.html',

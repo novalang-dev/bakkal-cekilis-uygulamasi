@@ -75,19 +75,6 @@
             <h3 class="text-xs font-extrabold text-slate-100 uppercase tracking-wider">Algoritma & Çekiliş Havuzu</h3>
           </div>
 
-          <!-- OTOMATİK AKILLI AYARLAMA BUTONU -->
-          <div class="mb-4 bg-slate-950 p-3.5 rounded-xl border border-amber-500/30 flex flex-col gap-2">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                <i data-lucide="wand-2" class="w-4 h-4"></i> Akıllı Şans Dağıtımı
-              </span>
-              <button onclick="autoBalanceWeights()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-3 py-1.5 rounded-lg transition-all shadow">
-                Oto-Ayarla
-              </button>
-            </div>
-            <p class="text-[10px] text-slate-400">Büyük ödüllere %2, orta boya %15, küçük hediyelere %60 şans verir.</p>
-          </div>
-
           <div class="mb-4 bg-slate-950 p-3 rounded-xl border border-slate-800">
             <label class="text-[11px] font-bold text-amber-400 block mb-1">OTOMATİK GECE KARIŞTIRMA</label>
             <div class="flex items-center justify-between">
@@ -102,7 +89,7 @@
 
         <div class="flex gap-3">
           <button id="btnShuffleNow" class="flex-1 py-2.5 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-300 font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 transition-all">
-            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Şimdi Karıştır (1000 Slot)
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Havuzu Karıştır (1000 Slot)
           </button>
           <button id="btnResetDraws" class="py-2.5 px-4 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-300 font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 transition-all">
             <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Çekilişi Sıfırla
@@ -110,6 +97,7 @@
         </div>
       </div>
 
+      <!-- ADETE GÖRE OTOMATİK ORANLAYAN HEDİYE EKLEME -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
         <div>
           <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-800">
@@ -120,24 +108,19 @@
           <div class="space-y-3">
             <div>
               <label class="text-[10px] font-bold text-slate-400 block mb-1">HEDİYE ADI</label>
-              <input type="text" id="inputNewItemName" placeholder="Örn: Buldozer / Hamburger" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs font-medium">
+              <input type="text" id="inputNewItemName" placeholder="Örn: Buldozer Oyuncak / Çikolata" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs font-medium">
             </div>
             
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="text-[10px] font-bold text-slate-400 block mb-1">STOK ADEDİ</label>
-                <input type="number" id="inputNewItemQty" placeholder="Stok" min="1" value="10" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs font-bold">
-              </div>
-              <div>
-                <label class="text-[10px] font-bold text-slate-400 block mb-1">ÇIKMA ŞANSI AĞIRLIĞI (%)</label>
-                <input type="number" id="inputNewItemWeight" placeholder="Şans" min="1" max="100" value="50" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-amber-300 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs font-bold">
-              </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 block mb-1">STOK ADEDİ</label>
+              <input type="number" id="inputNewItemQty" placeholder="Stok adedi girin" min="1" value="10" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-amber-400 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs font-black">
+              <p class="text-[10px] text-slate-400 mt-1">💡 Çıkış ağırlığı ve şansı doğrudan girdiğiniz stok adetine eşitlenir (Örn: 2 adet girerseniz şansı az, 50 adet girerseniz şansı yüksek olur).</p>
             </div>
           </div>
         </div>
 
         <button id="btnAddInventoryItem" class="mt-4 w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all shadow-lg">
-          <i data-lucide="plus" class="w-4 h-4"></i> Listeye Ekle ve Kaydet
+          <i data-lucide="plus" class="w-4 h-4"></i> Adete Göre Ekle ve Kaydet
         </button>
       </div>
 
@@ -147,7 +130,7 @@
       <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
         <div class="flex items-center gap-2">
           <i data-lucide="box" class="w-4 h-4 text-amber-400"></i>
-          <h3 class="text-xs font-extrabold text-slate-100 uppercase tracking-wider">Mevcut Hediye Stokları & Çıkma Oranları</h3>
+          <h3 class="text-xs font-extrabold text-slate-100 uppercase tracking-wider">Mevcut Hediye Stokları & Adet Bazlı Şans</h3>
         </div>
         <span class="text-[11px] text-slate-400">Değişiklikler anlık olarak telefona yansır.</span>
       </div>
@@ -220,7 +203,9 @@
 
       let pool = [];
       availableItems.forEach(item => {
-        const weight = Math.max(1, parseInt(item.weight) || 1);
+        // Ağırlık doğrudan stok adedine (qty) eşitlenir (minimum 1)
+        const weight = Math.max(1, parseInt(item.qty) || 1);
+        item.weight = weight; // weight her zaman qty ile senkronize edilir
         for (let w = 0; w < weight * 10; w++) {
           pool.push(item.name);
         }
@@ -250,7 +235,12 @@
       try {
         let { data: invData, error: invErr } = await supabaseClient.from('inventory').select('*');
         if (invErr) throw invErr;
-        inventory = invData || [];
+        
+        // Veriler yüklenirken ağırlıkların adete eşit olduğundan emin oluyoruz
+        inventory = (invData || []).map(item => ({
+          ...item,
+          weight: Math.max(1, parseInt(item.qty) || 1)
+        }));
 
         let { data: mapData } = await supabaseClient.from('slot_mapping').select('*');
         if (!mapData || mapData.length === 0) {
@@ -284,7 +274,7 @@
           id: item.id,
           name: item.name,
           qty: parseInt(item.qty) || 0,
-          weight: parseInt(item.weight) || 10
+          weight: parseInt(item.qty) || 1 // Şans/Ağırlık her zaman adete eşitlenir
         }));
         await supabaseClient.from('inventory').upsert(cleanInventory, { onConflict: 'id' });
       } catch (e) {}
@@ -313,31 +303,26 @@
     function renderAdminInventory() {
       const container = document.getElementById('adminInventoryList');
       container.innerHTML = inventory.map((item, idx) => {
-        const weightVal = item.weight || 10;
         const qtyVal = item.qty !== undefined ? item.qty : 10;
+        
         return `
           <div class="p-3.5 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col justify-between shadow">
             <div class="flex items-center justify-between mb-2">
-              <span class="font-extrabold text-slate-100 text-xs truncate max-w-[190px]">${item.name}</span>
+              <span class="font-extrabold text-slate-100 text-xs truncate max-w-[180px]">${item.name}</span>
               <button onclick="removeInventoryItem(${idx})" class="text-rose-400 hover:text-rose-300 p-1 transition-colors">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
             </div>
             
-            <div class="grid grid-cols-2 gap-2 text-xs mb-3">
-              <div class="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">
-                <span class="text-slate-400 font-semibold">Stok:</span>
-                <input type="number" min="0" value="${qtyVal}" onchange="updateItemQty(${idx}, this.value)" class="w-14 bg-transparent font-black text-amber-400 focus:outline-none">
+            <div class="flex items-center justify-between bg-slate-900 px-3.5 py-2.5 rounded-xl border border-slate-800">
+              <div class="flex items-center gap-2">
+                <span class="text-slate-400 font-semibold text-xs">Stok Adedi:</span>
+                <input type="number" min="0" value="${qtyVal}" onchange="updateItemQty(${idx}, this.value)" class="w-16 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-center font-black text-amber-400 focus:outline-none focus:border-amber-500 text-xs">
               </div>
-
-              <div class="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">
-                <span class="text-slate-400 font-semibold">Şans:</span>
-                <span class="font-black text-amber-300">%${weightVal}</span>
+              <div class="text-right">
+                <span class="text-[10px] text-slate-400 block">Şans Faktörü</span>
+                <span class="text-xs font-black text-amber-300">${qtyVal} Puan</span>
               </div>
-            </div>
-
-            <div>
-              <input type="range" min="1" max="100" value="${weightVal}" onchange="updateItemWeight(${idx}, this.value)" class="w-full accent-amber-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
             </div>
           </div>
         `;
@@ -347,15 +332,12 @@
       try { lucide.createIcons(); } catch (e) {}
     }
 
-    window.updateItemWeight = async function(idx, val) {
-      inventory[idx].weight = parseInt(val) || 1;
-      slotMapping = generateSlotMappingInMemory();
-      await saveInventoryToCloud();
-      await saveSlotMappingToCloud();
-    };
-
+    // STOK DEĞİŞTİĞİNDE AĞIRLIK VE ŞANS DOĞRUDAN ADETE EŞİTLENİR
     window.updateItemQty = async function(idx, val) {
-      inventory[idx].qty = parseInt(val) || 0;
+      const newQty = parseInt(val) || 0;
+      inventory[idx].qty = newQty;
+      inventory[idx].weight = Math.max(1, newQty);
+      
       slotMapping = generateSlotMappingInMemory();
       await saveInventoryToCloud();
       await saveSlotMappingToCloud();
@@ -374,30 +356,6 @@
 
       await saveInventoryToCloud();
       await saveSlotMappingToCloud();
-    };
-
-    // AKILLI ŞANS OTOMATİK AYARLAMA FONKSİYONU
-    window.autoBalanceWeights = async function() {
-      if (inventory.length === 0) {
-        showNotification("Uyarı", "Önce listeye hediye eklemelisiniz!");
-        return;
-      }
-
-      inventory.forEach(item => {
-        const nameLower = item.name.toLowerCase();
-        if (nameLower.includes('buldozer') || nameLower.includes('akülü') || nameLower.includes('bisiklet') || nameLower.includes('tablet') || nameLower.includes('araba')) {
-          item.weight = 2; // Büyük ödül: %2
-        } else if (nameLower.includes('top') || nameLower.includes('set') || nameLower.includes('oyuncak') || nameLower.includes('kutu')) {
-          item.weight = 15; // Orta ödül: %15
-        } else {
-          item.weight = 60; // Küçük/Standart hediye: %60
-        }
-      });
-
-      slotMapping = generateSlotMappingInMemory();
-      await saveInventoryToCloud();
-      await saveSlotMappingToCloud();
-      showNotification("Başarılı", "Tüm hediye şansları isme göre akıllıca otomatik dengelendi!");
     };
 
     document.getElementById('btnAdminLogin').addEventListener('click', async () => {
@@ -423,10 +381,11 @@
       }
     });
 
+    // YENİ ÜRÜN EKLENİRKEN AĞIRLIK DOĞRUDAN ADETE EŞİTLENİR
     document.getElementById('btnAddInventoryItem').addEventListener('click', async () => {
       const name = document.getElementById('inputNewItemName').value.trim();
-      const qty = parseInt(document.getElementById('inputNewItemQty').value) || 10;
-      const weight = parseInt(document.getElementById('inputNewItemWeight').value) || 50;
+      const qty = parseInt(document.getElementById('inputNewItemQty').value) || 1;
+      const weight = Math.max(1, qty); // Şans/Ağırlık = Stok Adedi
 
       if (name) {
         inventory.push({ id: Date.now(), name, qty, weight });
@@ -434,7 +393,7 @@
         slotMapping = generateSlotMappingInMemory();
         await saveInventoryToCloud();
         await saveSlotMappingToCloud();
-        showNotification("Başarılı", "Yeni hediye başarıyla eklendi ve buluta kaydedildi.");
+        showNotification("Başarılı", `"${name}" (${qty} adet) eklendi! Şansı doğrudan adetine (${qty} puan) göre ayarlandı.`);
       } else {
         showNotification("Uyarı", "Lütfen geçerli bir hediye adı girin.");
       }
@@ -443,7 +402,7 @@
     document.getElementById('btnShuffleNow').addEventListener('click', async () => {
       slotMapping = generateSlotMappingInMemory();
       await saveSlotMappingToCloud();
-      showNotification("Başarılı", "1000 slotluk çekiliş havuzu güncel stok ve oranlara göre yeniden karıştırıldı!");
+      showNotification("Başarılı", "1000 slotluk çekiliş havuzu güncel stok adetlerine göre yeniden karıştırıldı!");
     });
 
     document.getElementById('btnResetDraws').addEventListener('click', () => {
