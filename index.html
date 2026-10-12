@@ -13,7 +13,6 @@
   <meta name="apple-mobile-web-app-title" content="Süzener Market">
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23f59e0b'/><text x='50' y='68' font-size='55' text-anchor='middle'>🎁</text></svg>">
   
-  <!-- Inline Dynamic Manifest for PWA Support -->
   <link rel="manifest" id="manifestPlaceholder">
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -34,16 +33,6 @@
       width: 100%;
       height: 100%;
       inset: 0;
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: rgba(15, 23, 42, 0.6);
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 4px;
     }
     /* Glass Fanus styling */
     .fanus-bowl {
@@ -80,34 +69,23 @@
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 flex flex-col justify-between p-2 sm:p-3 overflow-hidden selection:bg-amber-500 selection:text-slate-950">
+<body class="bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-3 overflow-hidden selection:bg-amber-500 selection:text-slate-950">
 
-  <!-- Üst Header -->
-  <header class="w-full max-w-md mx-auto flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl px-3 py-2 shadow-xl backdrop-blur-md flex-shrink-0 gap-2">
-    <div class="flex items-center gap-2 min-w-0 flex-1">
-      <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950 font-black text-sm flex-shrink-0">
-        🎁
-      </div>
-      <div class="min-w-0 flex-1">
-        <h1 class="text-[11px] font-extrabold tracking-wide text-amber-400 truncate leading-tight">SÜZENER MARKET</h1>
-        <p class="text-[8px] font-semibold text-slate-400 truncate">Resmî Çekiliş Sistemi (Bulut)</p>
-      </div>
-    </div>
-    <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 flex-shrink-0">
-      <button id="btnTabDraw" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all bg-amber-500 text-slate-950 shadow-md">Çekiliş</button>
-      <button id="btnTabAdmin" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all text-slate-400 hover:text-slate-200">Yönetim</button>
-    </div>
-  </header>
-
-  <main id="drawContent" class="w-full max-w-md mx-auto my-auto flex flex-col items-center justify-center gap-2.5 py-1 overflow-hidden flex-1">
+  <main id="drawContent" class="w-full max-w-md mx-auto flex flex-col items-center justify-center gap-3 my-auto">
     
+    <!-- Marka Başlığı -->
+    <div class="text-center mb-1">
+      <h1 class="text-sm font-black tracking-wider text-amber-400">SÜZENER MARKET</h1>
+      <p id="txtConnectionStatus" class="text-[9px] font-semibold text-slate-400">Bulut Bağlı (Hibrit Mod)</p>
+    </div>
+
     <!-- Fanus & Draw Card -->
-    <div class="w-full bg-slate-900/90 border-2 border-amber-500/40 rounded-3xl p-3 sm:p-4 shadow-2xl relative flex flex-col items-center justify-center">
+    <div class="w-full bg-slate-900/90 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-5 shadow-2xl relative flex flex-col items-center justify-center">
       
       <!-- Top Status Info -->
-      <div class="w-full flex items-center justify-between mb-1.5 px-1 flex-shrink-0">
+      <div class="w-full flex items-center justify-between mb-2 px-1">
         <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> BULUT SENKRONİZE
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> AKTİF SİSTEM
         </span>
         <span id="txtRemainingStats" class="text-[10px] font-bold text-slate-300 bg-slate-950 px-2.5 py-0.5 rounded-full border border-slate-800">
           Kalan Hediye: 0
@@ -115,7 +93,7 @@
       </div>
 
       <!-- Tıklanabilir Cam Fanus Container -->
-      <div id="fanusContainer" class="fanus-bowl w-36 h-36 sm:w-48 sm:h-48 rounded-full relative overflow-hidden flex items-center justify-center my-1 cursor-pointer hover:scale-[1.02] active:scale-95 transition-all shadow-2xl group">
+      <div id="fanusContainer" class="fanus-bowl w-40 h-40 sm:w-52 sm:h-52 rounded-full relative overflow-hidden flex items-center justify-center my-2 cursor-pointer hover:scale-[1.02] active:scale-95 transition-all shadow-2xl group">
         <div class="absolute top-2 left-4 w-12 h-6 bg-white/10 rounded-full blur-md transform -rotate-45 pointer-events-none z-20"></div>
 
         <div class="absolute inset-2 flex flex-wrap items-center justify-center gap-1 p-2 overflow-hidden pointer-events-none opacity-95">
@@ -133,81 +111,15 @@
           <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-lime-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.2s;"></div>
         </div>
 
-        <div class="absolute z-10 text-center bg-slate-950/90 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-amber-500/50 shadow-xl group-hover:border-amber-400 transition-colors">
-          <p class="text-[10px] font-black text-amber-400 tracking-wide">ÇEKMEK İÇİN DOKUN!</p>
-          <p class="text-[8px] font-bold text-slate-300">10 TL At & Fanusa Bas</p>
+        <div class="absolute z-10 text-center bg-slate-950/90 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-amber-500/50 shadow-xl group-hover:border-amber-400 transition-colors">
+          <p class="text-[11px] font-black text-amber-400 tracking-wide">ÇEKMEK İÇİN DOKUN!</p>
+          <p class="text-[9px] font-bold text-slate-300">10 TL At & Fanusa Bas</p>
         </div>
       </div>
 
     </div>
 
   </main>
-
-  <div id="adminContent" class="w-full max-w-md mx-auto my-auto hidden flex-col gap-2.5 py-1 overflow-hidden flex-1">
-    
-    <div id="adminAuthBox" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center my-auto">
-      <i data-lucide="lock" class="w-7 h-7 text-amber-400 mx-auto mb-2"></i>
-      <h2 class="text-xs font-bold text-slate-200 mb-2">Yönetim Paneli Girişi</h2>
-      <div class="flex gap-2 max-w-xs mx-auto">
-        <input type="password" id="inputAdminPin" placeholder="PIN Kodu" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-center font-bold text-slate-100 text-xs flex-1 focus:outline-none focus:border-amber-500">
-        <button id="btnAdminLogin" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs">Giriş Yap</button>
-      </div>
-      <p class="text-[9px] text-slate-500 mt-2">Varsayılan PIN: 1234</p>
-    </div>
-
-    <div id="adminPanelControls" class="hidden flex-col gap-2.5 overflow-hidden flex-1">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex-shrink-0">
-        <div class="flex items-center gap-2 mb-2 pb-1.5 border-b border-slate-800">
-          <i data-lucide="shuffle" class="w-3.5 h-3.5 text-amber-400"></i>
-          <h3 class="text-xs font-bold text-slate-100 uppercase tracking-wider">Algoritma & Sıfırlama</h3>
-        </div>
-
-        <div class="mb-2.5 bg-slate-950 p-2 rounded-xl border border-slate-800">
-          <label class="text-[10px] font-bold text-amber-400 block mb-0.5">OTOMATİK GECE KARIŞTIRMA</label>
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] text-slate-300 font-semibold">Her Gece 00:00'da Otomatik Karıştır</span>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="chkAutoShuffle" class="sr-only peer" checked>
-              <div class="w-8 h-4 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-amber-500"></div>
-            </label>
-          </div>
-        </div>
-
-        <div class="flex gap-2">
-          <button id="btnShuffleNow" class="flex-1 py-1.5 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1">
-            <i data-lucide="refresh-cw" class="w-3 h-3"></i> Şimdi Karıştır
-          </button>
-          <button id="btnResetDraws" class="py-1.5 px-3 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1">
-            <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Sıfırla
-          </button>
-        </div>
-      </div>
-
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex flex-col flex-1 overflow-hidden">
-        <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-800 flex-shrink-0">
-          <div class="flex items-center gap-2">
-            <i data-lucide="box" class="w-3.5 h-3.5 text-amber-400"></i>
-            <h3 class="text-xs font-bold text-slate-100 uppercase tracking-wider">Hediye Stokları & Çıkma Şansı (%)</h3>
-          </div>
-          <span id="txtTotalTypes" class="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full">0 Çeşit</span>
-        </div>
-
-        <div class="grid grid-cols-4 gap-1.5 mb-2 text-xs flex-shrink-0">
-          <input type="text" id="inputNewItemName" placeholder="Hediye Adı" class="col-span-2 bg-slate-950 border border-slate-700 rounded-xl px-2 py-1.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs">
-          <input type="number" id="inputNewItemQty" placeholder="Stok" min="1" value="10" class="bg-slate-950 border border-slate-700 rounded-xl px-2 py-1.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs">
-          <input type="number" id="inputNewItemWeight" placeholder="Şans %" min="1" max="100" value="50" class="bg-slate-950 border border-slate-700 rounded-xl px-2 py-1.5 text-amber-300 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs">
-        </div>
-        <button id="btnAddInventoryItem" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-bold mb-2 flex items-center justify-center gap-1 flex-shrink-0">
-          <i data-lucide="plus" class="w-3.5 h-3.5"></i> Yeni Hediye Ekle
-        </button>
-
-        <div id="adminInventoryList" class="overflow-y-auto space-y-2 text-xs pr-1 custom-scrollbar flex-1">
-        </div>
-      </div>
-
-    </div>
-
-  </div>
 
   <!-- KAZANÇ / SONUÇ MODALI -->
   <div id="modalResult" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
@@ -244,14 +156,13 @@
       <p id="customModalMessage" class="text-xs text-slate-200 mb-3 leading-relaxed">Mesaj metni buraya gelecek.</p>
       <div id="customModalButtons" class="flex gap-2">
         <button id="customModalOk" class="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-md">Tamam</button>
-        <button id="customModalCancel" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl hidden">İptal</button>
       </div>
     </div>
   </div>
 
   <script>
     // ==========================================
-    // SUPABASE BAĞLANTI AYARLARI
+    // SUPABASE & OFFLINE-FIRST HİBRİT BAĞLANTI
     // ==========================================
     const SUPABASE_URL = 'https://kfrlpvjpivkiojsowbzw.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcmxwdmpwaXZraW9qc293Ynp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3ODc3NTAsImV4cCI6MjEwNzM2Mzc1MH0.UrycoXFp2oqRGhYZG1DbYv00qfIG8muFUNENMxjnFVM';
@@ -260,18 +171,13 @@
     let inventory = [];
     let drawnNumbers = [];
     let slotMapping = {};
-    let autoShuffleEnabled = true;
-    let lastShuffleDate = '';
-    let adminPin = '1234';
-    let isAdminAuthenticated = false;
     let isSpinning = false;
 
-    function showNotification(title, message, isConfirm = false, onConfirm = null) {
+    function showNotification(title, message, onConfirm = null) {
       const modal = document.getElementById('customModal');
       const titleEl = document.getElementById('customModalTitle');
       const msgEl = document.getElementById('customModalMessage');
       const okBtn = document.getElementById('customModalOk');
-      const cancelBtn = document.getElementById('customModalCancel');
 
       titleEl.textContent = title;
       msgEl.textContent = message;
@@ -280,16 +186,6 @@
         modal.classList.add('hidden');
         if (onConfirm) onConfirm(true);
       };
-
-      if (isConfirm) {
-        cancelBtn.classList.remove('hidden');
-        cancelBtn.onclick = () => {
-          modal.classList.add('hidden');
-          if (onConfirm) onConfirm(false);
-        };
-      } else {
-        cancelBtn.classList.add('hidden');
-      }
 
       modal.classList.remove('hidden');
     }
@@ -348,15 +244,20 @@
     }
 
     // ==========================================
-    // BULUT VERİ YÜKLEME VE SENKRONİZASYON
+    // VERİ YÜKLEME VE SENKRONİZASYON
     // ==========================================
     async function loadAppData() {
+      const statusEl = document.getElementById('txtConnectionStatus');
       try {
-        let { data: invData } = await supabaseClient.from('inventory').select('*');
+        let { data: invData, error: invErr } = await supabaseClient.from('inventory').select('*');
+        if (invErr) throw invErr;
+
         inventory = invData || [];
+        localStorage.setItem('suzener_offline_inv', JSON.stringify(inventory));
 
         let { data: drawnData } = await supabaseClient.from('drawn_numbers').select('*');
         drawnNumbers = drawnData ? drawnData.map(d => d.draw_number) : [];
+        localStorage.setItem('suzener_offline_drawn', JSON.stringify(drawnNumbers));
 
         let { data: mapData } = await supabaseClient.from('slot_mapping').select('*');
         if (!mapData || mapData.length === 0) {
@@ -367,50 +268,71 @@
           mapData.forEach(row => {
             slotMapping[row.slot_number] = row.prize_name;
           });
+          localStorage.setItem('suzener_offline_map', JSON.stringify(slotMapping));
         }
 
-        let { data: settingsData } = await supabaseClient.from('app_settings').select('*');
-        if (settingsData) {
-          settingsData.forEach(s => {
-            if (s.key === 'auto_shuffle') autoShuffleEnabled = s.value === 'true';
-            if (s.key === 'last_shuffle_date') lastShuffleDate = s.value;
-          });
-        }
-
-        updateRemainingStats();
-        if (isAdminAuthenticated) renderAdminInventory();
+        statusEl.textContent = "Bulut Bağlı (Senkronize)";
+        statusEl.className = "text-[9px] font-semibold text-emerald-400";
       } catch (e) {
-        console.error("Bulut veri yükleme hatası:", e);
+        statusEl.textContent = "Çevrimdışı Mod (Yerel Bellek)";
+        statusEl.className = "text-[9px] font-semibold text-amber-400";
+
+        const localInv = localStorage.getItem('suzener_offline_inv');
+        inventory = localInv ? JSON.parse(localInv) : [];
+
+        const localDrawn = localStorage.getItem('suzener_offline_drawn');
+        drawnNumbers = localDrawn ? JSON.parse(localDrawn) : [];
+
+        const localMap = localStorage.getItem('suzener_offline_map');
+        slotMapping = localMap ? JSON.parse(localMap) : generateSlotMappingInMemory();
       }
+
+      updateRemainingStats();
     }
 
     async function saveInventoryToCloud() {
-      await supabaseClient.from('inventory').upsert(inventory);
+      localStorage.setItem('suzener_offline_inv', JSON.stringify(inventory));
+      try {
+        await supabaseClient.from('inventory').upsert(inventory);
+      } catch (e) {}
       updateRemainingStats();
     }
 
     async function saveSlotMappingToCloud() {
-      const rows = Object.keys(slotMapping).map(num => ({
-        slot_number: parseInt(num),
-        prize_name: slotMapping[num]
-      }));
-      await supabaseClient.from('slot_mapping').upsert(rows);
+      localStorage.setItem('suzener_offline_map', JSON.stringify(slotMapping));
+      try {
+        const rows = Object.keys(slotMapping).map(num => ({
+          slot_number: parseInt(num),
+          prize_name: slotMapping[num]
+        }));
+        await supabaseClient.from('slot_mapping').upsert(rows);
+      } catch (e) {}
     }
 
-    async function saveSettingsToCloud() {
-      await supabaseClient.from('app_settings').upsert([
-        { key: 'auto_shuffle', value: String(autoShuffleEnabled) },
-        { key: 'last_shuffle_date', value: lastShuffleDate }
-      ]);
-    }
+    window.addEventListener('online', async () => {
+      document.getElementById('txtConnectionStatus').textContent = "İnternet Geldi, Eşitleniyor...";
+      document.getElementById('txtConnectionStatus').className = "text-[9px] font-semibold text-blue-400";
+      try {
+        await saveInventoryToCloud();
+        await saveSlotMappingToCloud();
+        await loadAppData();
+      } catch(e) {}
+    });
+
+    window.addEventListener('offline', () => {
+      document.getElementById('txtConnectionStatus').textContent = "Çevrimdışı Mod (Yerel Bellek)";
+      document.getElementById('txtConnectionStatus').className = "text-[9px] font-semibold text-amber-400";
+    });
 
     function setupRealtimeSync() {
-      supabaseClient
-        .channel('public-db-changes')
-        .on('postgres_changes', { event: '*', schema: 'public' }, payload => {
-          loadAppData();
-        })
-        .subscribe();
+      try {
+        supabaseClient
+          .channel('public-db-changes')
+          .on('postgres_changes', { event: '*', schema: 'public' }, payload => {
+            loadAppData();
+          })
+          .subscribe();
+      } catch(e) {}
     }
 
     // ==========================================
@@ -421,12 +343,12 @@
       
       const totalStock = getTotalStock();
       if (totalStock <= 0) {
-        showNotification("Stok Bitti", "Tüm hediyelerin stoku bitti! Lütfen Yönetim'den stok ekleyin.");
+        showNotification("Stok Bitti", "Tüm hediyelerin stoku bitti! Lütfen yönetim panelinden stok ekleyin.");
         return;
       }
 
       if (drawnNumbers.length >= 1000) {
-        showNotification("Çekiliş Tamamlandı", "Tüm 1000 numara çekildi! Lütfen Yönetim'den sıfırlayın.");
+        showNotification("Çekiliş Tamamlandı", "Tüm 1000 numara çekildi!");
         return;
       }
 
@@ -490,8 +412,12 @@
         document.getElementById('txtWinnerNumber').textContent = `#${winFormatted}`;
         document.getElementById('txtWinnerPrize').textContent = winPrize;
 
-        await supabaseClient.from('drawn_numbers').insert([{ draw_number: winNum, prize_name: winPrize }]);
         drawnNumbers.push(winNum);
+        localStorage.setItem('suzener_offline_drawn', JSON.stringify(drawnNumbers));
+
+        try {
+          await supabaseClient.from('drawn_numbers').insert([{ draw_number: winNum, prize_name: winPrize }]);
+        } catch (e) {}
 
         const invIndex = inventory.findIndex(item => item.name === winPrize);
         if (invIndex !== -1 && inventory[invIndex].qty > 0) {
@@ -507,151 +433,11 @@
       }, 1500);
     }
 
-    function renderAdminInventory() {
-      const container = document.getElementById('adminInventoryList');
-      container.innerHTML = inventory.map((item, idx) => {
-        const weightVal = item.weight || 10;
-        const qtyVal = item.qty !== undefined ? item.qty : 10;
-        return `
-          <div class="py-2 px-2.5 bg-slate-950/80 border border-slate-800 rounded-xl">
-            <div class="flex items-center justify-between mb-1.5">
-              <span class="font-extrabold text-slate-100 text-xs truncate max-w-[170px]">${item.name}</span>
-              <button onclick="removeInventoryItem(${idx})" class="text-rose-400 hover:text-rose-300 p-1">
-                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-              </button>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-2 text-[11px]">
-              <div class="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded-lg border border-slate-800">
-                <span class="text-slate-400">Stok:</span>
-                <input type="number" min="0" value="${qtyVal}" onchange="updateItemQty(${idx}, this.value)" class="w-14 bg-transparent font-bold text-amber-400 focus:outline-none">
-              </div>
-
-              <div class="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded-lg border border-slate-800">
-                <span class="text-slate-400">Şans:</span>
-                <span class="font-bold text-amber-300">%${weightVal}</span>
-              </div>
-            </div>
-
-            <div class="mt-2">
-              <input type="range" min="1" max="100" value="${weightVal}" onchange="updateItemWeight(${idx}, this.value)" class="w-full accent-amber-500 h-1 bg-slate-800 rounded-lg cursor-pointer">
-            </div>
-          </div>
-        `;
-      }).join('');
-      
-      document.getElementById('txtTotalTypes').textContent = `${inventory.length} Çeşit`;
-      try { lucide.createIcons(); } catch (e) {}
-    }
-
-    window.updateItemWeight = async function(idx, val) {
-      inventory[idx].weight = parseInt(val) || 1;
-      slotMapping = generateSlotMappingInMemory();
-      await saveInventoryToCloud();
-      await saveSlotMappingToCloud();
-      renderAdminInventory();
-    };
-
-    window.updateItemQty = async function(idx, val) {
-      inventory[idx].qty = parseInt(val) || 0;
-      slotMapping = generateSlotMappingInMemory();
-      await saveInventoryToCloud();
-      await saveSlotMappingToCloud();
-      renderAdminInventory();
-    };
-
-    window.removeInventoryItem = async function(idx) {
-      inventory.splice(idx, 1);
-      slotMapping = generateSlotMappingInMemory();
-      await saveInventoryToCloud();
-      await saveSlotMappingToCloud();
-      renderAdminInventory();
-    };
-
     // Fanus tıklama
     document.getElementById('fanusContainer').addEventListener('click', startDraw);
 
     document.getElementById('btnCloseModal').addEventListener('click', () => {
       document.getElementById('modalResult').classList.add('hidden');
-    });
-
-    // Tab Navigation
-    document.getElementById('btnTabDraw').addEventListener('click', () => {
-      document.getElementById('drawContent').classList.remove('hidden');
-      document.getElementById('drawContent').classList.add('flex');
-      document.getElementById('adminContent').classList.add('hidden');
-      document.getElementById('adminContent').classList.remove('flex');
-
-      document.getElementById('btnTabDraw').className = "px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
-      document.getElementById('btnTabAdmin').className = "px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all text-slate-400 hover:text-slate-200";
-    });
-
-    document.getElementById('btnTabAdmin').addEventListener('click', () => {
-      document.getElementById('drawContent').classList.add('hidden');
-      document.getElementById('drawContent').classList.remove('flex');
-      document.getElementById('adminContent').classList.remove('hidden');
-      document.getElementById('adminContent').classList.add('flex');
-
-      document.getElementById('btnTabAdmin').className = "px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
-      document.getElementById('btnTabDraw').className = "px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all text-slate-400 hover:text-slate-200";
-    });
-
-    // Admin Auth
-    document.getElementById('btnAdminLogin').addEventListener('click', () => {
-      const pin = document.getElementById('inputAdminPin').value;
-      if (pin === adminPin) {
-        isAdminAuthenticated = true;
-        document.getElementById('adminAuthBox').classList.add('hidden');
-        document.getElementById('adminPanelControls').classList.remove('hidden');
-        document.getElementById('adminPanelControls').classList.add('flex');
-        
-        const chk = document.getElementById('chkAutoShuffle');
-        if (chk) {
-          chk.checked = autoShuffleEnabled;
-          chk.onchange = async (e) => {
-            autoShuffleEnabled = e.target.checked;
-            await saveSettingsToCloud();
-          };
-        }
-
-        renderAdminInventory();
-      } else {
-        showNotification("Hata", "Hatalı PIN Kodu!");
-      }
-    });
-
-    // Admin Actions
-    document.getElementById('btnAddInventoryItem').addEventListener('click', async () => {
-      const name = document.getElementById('inputNewItemName').value.trim();
-      const qty = parseInt(document.getElementById('inputNewItemQty').value) || 10;
-      const weight = parseInt(document.getElementById('inputNewItemWeight').value) || 50;
-
-      if (name) {
-        inventory.push({ id: Date.now(), name, qty, weight });
-        document.getElementById('inputNewItemName').value = '';
-        slotMapping = generateSlotMappingInMemory();
-        await saveInventoryToCloud();
-        await saveSlotMappingToCloud();
-        renderAdminInventory();
-      } else {
-        showNotification("Uyarı", "Lütfen hediye adı girin.");
-      }
-    });
-
-    document.getElementById('btnShuffleNow').addEventListener('click', async () => {
-      slotMapping = generateSlotMappingInMemory();
-      await saveSlotMappingToCloud();
-      showNotification("Başarılı", "Tüm numaralar yeni stok ve oranlara göre karıştırıldı!");
-    });
-
-    document.getElementById('btnResetDraws').addEventListener('click', () => {
-      showNotification("Onay", "Çekilen tüm numaralar sıfırlansın mı?", true, async (confirmed) => {
-        if (confirmed) {
-          await supabaseClient.from('drawn_numbers').delete().neq('draw_number', 0);
-          drawnNumbers = [];
-          showNotification("Başarılı", "Çekiliş sıfırlandı!");
-        }
-      });
     });
 
     // Initialize App

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full bg-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Süzener Market - Yönetim Paneli (PC)</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      user-select: none;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col p-4 sm:p-6 selection:bg-amber-500 selection:text-slate-950">
+
+  <!-- Üst Header -->
+  <header class="w-full max-w-4xl mx-auto flex items-center justify-between bg-slate-900 border border-slate-800 rounded-2xl px-5 py-3 shadow-2xl mb-6">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950 font-black text-xl">
+        ⚙️
+      </div>
+      <div>
+        <h1 class="text-sm font-extrabold tracking-wide text-amber-400">SÜZENER MARKET - YÖNETİM PANELİ</h1>
+        <p id="txtConnectionStatus" class="text-xs font-semibold text-emerald-400">Bulut Bağlı (PC Kontrol Merkezi)</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <span id="txtTotalTypes" class="text-xs bg-amber-500/10 text-amber-300 font-bold px-3 py-1.5 rounded-xl border border-amber-500/20">0 Çeşit Hediye</span>
+    </div>
+  </header>
+
+  <!-- GİRİŞ EKRANI (PIN) -->
+  <div id="adminAuthBox" class="w-full max-w-md mx-auto my-auto bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center shadow-2xl">
+    <div class="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center mx-auto mb-4 text-amber-400">
+      <i data-lucide="lock" class="w-8 h-8"></i>
+    </div>
+    <h2 class="text-lg font-extrabold text-slate-100 mb-2">Yönetim Paneline Giriş</h2>
+    <p class="text-xs text-slate-400 mb-6">Stokları ve çekiliş oranlarını değiştirmek için PIN kodunu girin.</p>
+    <div class="flex gap-2 max-w-xs mx-auto">
+      <input type="password" id="inputAdminPin" placeholder="PIN Kodu (1234)" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-center font-bold text-slate-100 text-sm flex-1 focus:outline-none focus:border-amber-500">
+      <button id="btnAdminLogin" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-5 py-3 rounded-xl text-sm transition-all shadow-lg">Giriş</button>
+    </div>
+    <p class="text-[10px] text-slate-500 mt-4">Varsayılan PIN: 1234</p>
+  </div>
+
+  <!-- ANA YÖNETİM PANELİ (Giriş Yapılınca Görünür) -->
+  <main id="adminPanelControls" class="w-full max-w-4xl mx-auto hidden flex-col gap-6 flex-1">
+    
+    <!-- Üst Kontroller Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      
+      <!-- Algoritma & Sıfırlama Kartı -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
+        <div>
+          <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-800">
+            <i data-lucide="shuffle" class="w-4 h-4 text-amber-400"></i>
+            <h3 class="text-xs font-extrabold text-slate-100 uppercase tracking-wider">Algoritma & Çekiliş Havuzu</h3>
+          </div>
+
+          <div class="mb-4 bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <label class="text-[11px] font-bold text-amber-400 block mb-1">OTOMATİK GECE KARIŞTIRMA</label>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-300 font-medium">Her Gece 00:00'da Havuzu Otomatik Karıştır</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="chkAutoShuffle" class="sr-only peer" checked>
+                <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-3">
+          <button id="btnShuffleNow" class="flex-1 py-2.5 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-300 font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 transition-all">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Şimdi Karıştır (1000 Slot)
+          </button>
+          <button id="btnResetDraws" class="py-2.5 px-4 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-300 font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 transition-all">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Çekilişi Sıfırla
+          </button>
+        </div>
+      </div>
+
+      <!-- Yeni Hediye Ekleme Kartı -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
+        <div>
+          <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-800">
+            <i data-lucide="plus-circle" class="w-4 h-4 text-amber-400"></i>
+            <h3 class="text-xs font-extrabold text-slate-100 uppercase tracking-wider">Yeni Hediye Tanımla</h3>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 block mb-1">HEDİYE ADI</label>
+              <input type="text" id="inputNewItemName" placeholder="Örn: Akülü Araba / Hamburger" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs font-medium">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 block mb-1">STOK ADEDİ</label>
+                <input type="number" id="inputNewItemQty" placeholder="Stok" min="1" value="10" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs font-bold">
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 block mb-1">ÇIKMA ŞANSI AĞIRLIĞI (%)</label>
+                <input type="number" id="inputNewItemWeight" placeholder="Şans" min="1" max="100" value="50" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-amber-300 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs font-bold">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button id="btnAddInventoryItem" class="mt-4 w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all shadow-lg">
+          <i data-lucide="plus" class="w-4 h-4"></i> Listeye Ekle ve Kaydet
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Mevcut Stoklar Listesi -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col shadow-xl flex-1">
+      <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <i data-lucide="box" class="w-4 h-4 text-amber-400"></i>
+          <h3 class="text-xs font-extrabold text-slate-100 uppercase tracking-wider">Mevcut Hediye Stokları & Çıkma Oranları</h3>
+        </div>
+        <span class="text-[11px] text-slate-400">Değişiklikler anlık olarak telefona yansır.</span>
+      </div>
+
+      <div id="adminInventoryList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
+        <!-- JavaScript ile doldurulacak -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- BİLDİRİM / ONAY MODALI -->
+  <div id="customModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl">
+      <h3 id="customModalTitle" class="text-sm font-extrabold text-amber-400 mb-2 uppercase tracking-wider">BİLGİ</h3>
+      <p id="customModalMessage" class="text-xs text-slate-200 mb-5 leading-relaxed">Mesaj metni buraya gelecek.</p>
+      <div id="customModalButtons" class="flex gap-2">
+        <button id="customModalOk" class="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg">Tamam</button>
+        <button id="customModalCancel" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl hidden">İptal</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // SUPABASE BAĞLANTI AYARLARI
+    // ==========================================
+    const SUPABASE_URL = 'https://kfrlpvjpivkiojsowbzw.supabase.co'; 
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcmxwdmpwaXZraW9qc293Ynp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3ODc3NTAsImV4cCI6MjEwNzM2Mzc1MH0.UrycoXFp2oqRGhYZG1DbYv00qfIG8muFUNENMxjnFVM';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let inventory = [];
+    let slotMapping = {};
+    let autoShuffleEnabled = true;
+    let lastShuffleDate = '';
+    const adminPin = '1234';
+
+    function showNotification(title, message, isConfirm = false, onConfirm = null) {
+      const modal = document.getElementById('customModal');
+      const titleEl = document.getElementById('customModalTitle');
+      const msgEl = document.getElementById('customModalMessage');
+      const okBtn = document.getElementById('customModalOk');
+      const cancelBtn = document.getElementById('customModalCancel');
+
+      titleEl.textContent = title;
+      msgEl.textContent = message;
+
+      okBtn.onclick = () => {
+        modal.classList.add('hidden');
+        if (onConfirm) onConfirm(true);
+      };
+
+      if (isConfirm) {
+        cancelBtn.classList.remove('hidden');
+        cancelBtn.onclick = () => {
+          modal.classList.add('hidden');
+          if (onConfirm) onConfirm(false);
+        };
+      } else {
+        cancelBtn.classList.add('hidden');
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function generateSlotMappingInMemory() {
+      let mapping = {};
+      let availableItems = inventory.filter(i => (parseInt(i.qty) || 0) > 0);
+      
+      if (availableItems.length === 0) {
+        for (let i = 1; i <= 1000; i++) mapping[i] = "Stok Bitti";
+        return mapping;
+      }
+
+      let pool = [];
+      availableItems.forEach(item => {
+        const weight = Math.max(1, parseInt(item.weight) || 1);
+        for (let w = 0; w < weight * 10; w++) {
+          pool.push(item.name);
+        }
+      });
+
+      for (let num = 1; num <= 1000; num++) {
+        const randomIndex = Math.floor(Math.random() * pool.length);
+        mapping[num] = pool[randomIndex];
+      }
+      return mapping;
+    }
+
+    async function loadAppData() {
+      try {
+        let { data: invData, error: invErr } = await supabaseClient.from('inventory').select('*');
+        if (invErr) throw invErr;
+        inventory = invData || [];
+
+        let { data: mapData } = await supabaseClient.from('slot_mapping').select('*');
+        if (!mapData || mapData.length === 0) {
+          slotMapping = generateSlotMappingInMemory();
+          await saveSlotMappingToCloud();
+        } else {
+          slotMapping = {};
+          mapData.forEach(row => {
+            slotMapping[row.slot_number] = row.prize_name;
+          });
+        }
+
+        let { data: settingsData } = await supabaseClient.from('app_settings').select('*');
+        if (settingsData) {
+          settingsData.forEach(s => {
+            if (s.key === 'auto_shuffle') autoShuffleEnabled = s.value === 'true';
+            if (s.key === 'last_shuffle_date') lastShuffleDate = s.value;
+          });
+        }
+
+        renderAdminInventory();
+      } catch (e) {
+        document.getElementById('txtConnectionStatus').textContent = "Bağlantı Hatası (Çevrimdışı)";
+        document.getElementById('txtConnectionStatus').className = "text-xs font-semibold text-rose-400";
+      }
+    }
+
+    async function saveInventoryToCloud() {
+      try {
+        await supabaseClient.from('inventory').upsert(inventory);
+      } catch (e) {}
+      renderAdminInventory();
+    }
+
+    async function saveSlotMappingToCloud() {
+      try {
+        const rows = Object.keys(slotMapping).map(num => ({
+          slot_number: parseInt(num),
+          prize_name: slotMapping[num]
+        }));
+        await supabaseClient.from('slot_mapping').upsert(rows);
+      } catch (e) {}
+    }
+
+    async function saveSettingsToCloud() {
+      try {
+        await supabaseClient.from('app_settings').upsert([
+          { key: 'auto_shuffle', value: String(autoShuffleEnabled) },
+          { key: 'last_shuffle_date', value: lastShuffleDate }
+        ]);
+      } catch (e) {}
+    }
+
+    function renderAdminInventory() {
+      const container = document.getElementById('adminInventoryList');
+      container.innerHTML = inventory.map((item, idx) => {
+        const weightVal = item.weight || 10;
+        const qtyVal = item.qty !== undefined ? item.qty : 10;
+        return `
+          <div class="p-3.5 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col justify-between shadow">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-extrabold text-slate-100 text-xs truncate max-w-[190px]">${item.name}</span>
+              <button onclick="removeInventoryItem(${idx})" class="text-rose-400 hover:text-rose-300 p-1 transition-colors">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 text-xs mb-3">
+              <div class="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">
+                <span class="text-slate-400 font-semibold">Stok:</span>
+                <input type="number" min="0" value="${qtyVal}" onchange="updateItemQty(${idx}, this.value)" class="w-14 bg-transparent font-black text-amber-400 focus:outline-none">
+              </div>
+
+              <div class="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">
+                <span class="text-slate-400 font-semibold">Şans:</span>
+                <span class="font-black text-amber-300">%${weightVal}</span>
+              </div>
+            </div>
+
+            <div>
+              <input type="range" min="1" max="100" value="${weightVal}" onchange="updateItemWeight(${idx}, this.value)" class="w-full accent-amber-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      document.getElementById('txtTotalTypes').textContent = `${inventory.length} Çeşit Hediye`;
+      try { lucide.createIcons(); } catch (e) {}
+    }
+
+    window.updateItemWeight = async function(idx, val) {
+      inventory[idx].weight = parseInt(val) || 1;
+      slotMapping = generateSlotMappingInMemory();
+      await saveInventoryToCloud();
+      await saveSlotMappingToCloud();
+    };
+
+    window.updateItemQty = async function(idx, val) {
+      inventory[idx].qty = parseInt(val) || 0;
+      slotMapping = generateSlotMappingInMemory();
+      await saveInventoryToCloud();
+      await saveSlotMappingToCloud();
+    };
+
+    window.removeInventoryItem = async function(idx) {
+      inventory.splice(idx, 1);
+      slotMapping = generateSlotMappingInMemory();
+      await saveInventoryToCloud();
+      await saveSlotMappingToCloud();
+    };
+
+    // Giriş Butonu
+    document.getElementById('btnAdminLogin').addEventListener('click', async () => {
+      const pin = document.getElementById('inputAdminPin').value;
+      if (pin === adminPin) {
+        document.getElementById('adminAuthBox').classList.add('hidden');
+        document.getElementById('adminPanelControls').classList.remove('hidden');
+        document.getElementById('adminPanelControls').classList.add('flex');
+        
+        await loadAppData();
+
+        const chk = document.getElementById('chkAutoShuffle');
+        if (chk) {
+          chk.checked = autoShuffleEnabled;
+          chk.onchange = async (e) => {
+            autoShuffleEnabled = e.target.checked;
+            await saveSettingsToCloud();
+          };
+        }
+      } else {
+        showNotification("Hata", "Hatalı PIN Kodu! (Varsayılan: 1234)");
+      }
+    });
+
+    // Yeni İtem Ekleme
+    document.getElementById('btnAddInventoryItem').addEventListener('click', async () => {
+      const name = document.getElementById('inputNewItemName').value.trim();
+      const qty = parseInt(document.getElementById('inputNewItemQty').value) || 10;
+      const weight = parseInt(document.getElementById('inputNewItemWeight').value) || 50;
+
+      if (name) {
+        inventory.push({ id: Date.now(), name, qty, weight });
+        document.getElementById('inputNewItemName').value = '';
+        slotMapping = generateSlotMappingInMemory();
+        await saveInventoryToCloud();
+        await saveSlotMappingToCloud();
+        showNotification("Başarılı", "Yeni hediye başarıyla eklendi ve buluta kaydedildi.");
+      } else {
+        showNotification("Uyarı", "Lütfen geçerli bir hediye adı girin.");
+      }
+    });
+
+    // Şimdi Karıştır
+    document.getElementById('btnShuffleNow').addEventListener('click', async () => {
+      slotMapping = generateSlotMappingInMemory();
+      await saveSlotMappingToCloud();
+      showNotification("Başarılı", "1000 slotluk çekiliş havuzu güncel stok ve oranlara göre yeniden karıştırıldı!");
+    });
+
+    // Çekilişi Sıfırla
+    document.getElementById('btnResetDraws').addEventListener('click', () => {
+      showNotification("Onay", "Çekilen tüm numaralar sıfırlansın ve havuz baştan açılsın mı?", true, async (confirmed) => {
+        if (confirmed) {
+          try {
+            await supabaseClient.from('drawn_numbers').delete().neq('draw_number', 0);
+          } catch(e) {}
+          slotMapping = generateSlotMappingInMemory();
+          await saveSlotMappingToCloud();
+          showNotification("Başarılı", "Çekiliş geçmişi sıfırlandı ve sistem temizlendi!");
+        }
+      });
+    });
+
+    try { lucide.createIcons(); } catch(e) {}
+  </script>
+
+</body>
+</html>
