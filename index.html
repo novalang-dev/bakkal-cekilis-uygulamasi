@@ -257,22 +257,6 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcmxwdmpwaXZraW9qc293Ynp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3ODc3NTAsImV4cCI6MjEwNzM2Mzc1MH0.UrycoXFp2oqRGhYZG1DbYv00qfIG8muFUNENMxjnFVM';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const DEFAULT_INVENTORY = [
-      { id: 1, name: "Balon", qty: 200, weight: 90 },
-      { id: 2, name: "Küçük Meyve Suyu", qty: 150, weight: 85 },
-      { id: 3, name: "Bayrak", qty: 100, weight: 80 },
-      { id: 4, name: "Su", qty: 100, weight: 70 },
-      { id: 5, name: "2’li Hamburger", qty: 50, weight: 60 },
-      { id: 6, name: "2’li Lolipop Şeker", qty: 40, weight: 50 },
-      { id: 7, name: "Mısır Mini Paket", qty: 30, weight: 40 },
-      { id: 8, name: "Eti Puf", qty: 25, weight: 35 },
-      { id: 9, name: "Crax Sade Kraker", qty: 20, weight: 30 },
-      { id: 10, name: "Mini Araba / Kepçe", qty: 10, weight: 15 },
-      { id: 11, name: "Beslenme Çantası 🏆", qty: 2, weight: 1 },
-      { id: 12, name: "Günlük 🏆", qty: 1, weight: 1 },
-      { id: 13, name: "Yapboz 🏆", qty: 1, weight: 1 }
-    ];
-
     let inventory = [];
     let drawnNumbers = [];
     let slotMapping = {};
@@ -369,12 +353,7 @@
     async function loadAppData() {
       try {
         let { data: invData } = await supabaseClient.from('inventory').select('*');
-        if (!invData || invData.length === 0) {
-          await supabaseClient.from('inventory').upsert(DEFAULT_INVENTORY);
-          inventory = DEFAULT_INVENTORY;
-        } else {
-          inventory = invData;
-        }
+        inventory = invData || [];
 
         let { data: drawnData } = await supabaseClient.from('drawn_numbers').select('*');
         drawnNumbers = drawnData ? drawnData.map(d => d.draw_number) : [];
