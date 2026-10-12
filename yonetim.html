@@ -75,6 +75,19 @@
             <h3 class="text-xs font-extrabold text-slate-100 uppercase tracking-wider">Algoritma & Çekiliş Havuzu</h3>
           </div>
 
+          <!-- OTOMATİK AKILLI AYARLAMA BUTONU -->
+          <div class="mb-4 bg-slate-950 p-3.5 rounded-xl border border-amber-500/30 flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                <i data-lucide="wand-2" class="w-4 h-4"></i> Akıllı Şans Dağıtımı
+              </span>
+              <button onclick="autoBalanceWeights()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-3 py-1.5 rounded-lg transition-all shadow">
+                Oto-Ayarla
+              </button>
+            </div>
+            <p class="text-[10px] text-slate-400">Büyük ödüllere %2, orta boya %15, küçük hediyelere %60 şans verir.</p>
+          </div>
+
           <div class="mb-4 bg-slate-950 p-3 rounded-xl border border-slate-800">
             <label class="text-[11px] font-bold text-amber-400 block mb-1">OTOMATİK GECE KARIŞTIRMA</label>
             <div class="flex items-center justify-between">
@@ -107,7 +120,7 @@
           <div class="space-y-3">
             <div>
               <label class="text-[10px] font-bold text-slate-400 block mb-1">HEDİYE ADI</label>
-              <input type="text" id="inputNewItemName" placeholder="Örn: Akülü Araba / Hamburger" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs font-medium">
+              <input type="text" id="inputNewItemName" placeholder="Örn: Buldozer / Hamburger" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs font-medium">
             </div>
             
             <div class="grid grid-cols-2 gap-3">
@@ -166,7 +179,7 @@
     let slotMapping = {};
     let autoShuffleEnabled = true;
     let lastShuffleDate = '';
-    let currentAdminPin = '1234'; // Supabase'den dinamik olarak çekilecek
+    let currentAdminPin = '1234';
 
     function showNotification(title, message, isConfirm = false, onConfirm = null) {
       const modal = document.getElementById('customModal');
@@ -267,42 +280,35 @@
 
     async function saveInventoryToCloud() {
       try {
-        // Tüm objelerin anahtarlarını standardize ederek uyuşmazlığı önlüyoruz
         const cleanInventory = inventory.map(item => ({
           id: item.id,
           name: item.name,
           qty: parseInt(item.qty) || 0,
           weight: parseInt(item.weight) || 10
         }));
-        
         await supabaseClient.from('inventory').upsert(cleanInventory, { onConflict: 'id' });
-      } catch (e) {
-        console.error("Kayıt hatası:", e);
-      }
+      } catch (e) {}
       renderAdminInventory();
     }
 
     async function saveSlotMappingToCloud() {
-  localStorage.setItem('suzener_offline_map', JSON.stringify(slotMapping));
-  try {
-    const rows = Object.keys(slotMapping).map(num => ({
-      slot_number: parseInt(num),
-      prize_name: slotMapping[num]
-    }));
-    // { onConflict: 'slot_number' } eklendi
-    await supabaseClient.from('slot_mapping').upsert(rows, { onConflict: 'slot_number' });
-  } catch (e) {}
-}
+      try {
+        const rows = Object.keys(slotMapping).map(num => ({
+          slot_number: parseInt(num),
+          prize_name: slotMapping[num]
+        }));
+        await supabaseClient.from('slot_mapping').upsert(rows, { onConflict: 'slot_number' });
+      } catch (e) {}
+    }
 
     async function saveSettingsToCloud() {
-  try {
-    // { onConflict: 'key' } eklendi
-    await supabaseClient.from('app_settings').upsert([
-      { key: 'auto_shuffle', value: String(autoShuffleEnabled) },
-      { key: 'last_shuffle_date', value: lastShuffleDate }
-    ], { onConflict: 'key' });
-  } catch (e) {}
-}
+      try {
+        await supabaseClient.from('app_settings').upsert([
+          { key: 'auto_shuffle', value: String(autoShuffleEnabled) },
+          { key: 'last_shuffle_date', value: lastShuffleDate }
+        ], { onConflict: 'key' });
+      } catch (e) {}
+    }
 
     function renderAdminInventory() {
       const container = document.getElementById('adminInventoryList');
@@ -370,8 +376,32 @@
       await saveSlotMappingToCloud();
     };
 
+    // AKILLI ŞANS OTOMATİK AYARLAMA FONKSİYONU
+    window.autoBalanceWeights = async function() {
+      if (inventory.length === 0) {
+        showNotification("Uyarı", "Önce listeye hediye eklemelisiniz!");
+        return;
+      }
+
+      inventory.forEach(item => {
+        const nameLower = item.name.toLowerCase();
+        if (nameLower.includes('buldozer') || nameLower.includes('akülü') || nameLower.includes('bisiklet') || nameLower.includes('tablet') || nameLower.includes('araba')) {
+          item.weight = 2; // Büyük ödül: %2
+        } else if (nameLower.includes('top') || nameLower.includes('set') || nameLower.includes('oyuncak') || nameLower.includes('kutu')) {
+          item.weight = 15; // Orta ödül: %15
+        } else {
+          item.weight = 60; // Küçük/Standart hediye: %60
+        }
+      });
+
+      slotMapping = generateSlotMappingInMemory();
+      await saveInventoryToCloud();
+      await saveSlotMappingToCloud();
+      showNotification("Başarılı", "Tüm hediye şansları isme göre akıllıca otomatik dengelendi!");
+    };
+
     document.getElementById('btnAdminLogin').addEventListener('click', async () => {
-      await fetchAdminPin(); // En güncel PIN'i veritabanından sorgula
+      await fetchAdminPin();
       const pin = document.getElementById('inputAdminPin').value;
       if (pin === currentAdminPin) {
         document.getElementById('adminAuthBox').classList.add('hidden');
