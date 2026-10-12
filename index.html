@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full bg-slate-950 overflow-hidden fixed inset-0">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Süzener Market - Resmî Çekiliş Sistemi</title>
+  <link rel="manifest" href="./manifest.json">
+
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Süzener Market">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23f59e0b'/><text x='50' y='68' font-size='55' text-anchor='middle'>🎁</text></svg>">
+  
+  <!-- Inline Dynamic Manifest for PWA Support -->
+  <link rel="manifest" id="manifestPlaceholder">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      inset: 0;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    /* Glass Fanus styling */
+    .fanus-bowl {
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15), rgba(15, 23, 42, 0.9));
+      box-shadow: inset 0 0 35px rgba(255, 255, 255, 0.12), 0 15px 35px rgba(0, 0, 0, 0.8), 0 0 25px rgba(245, 158, 11, 0.25);
+      border: 3px solid rgba(255, 255, 255, 0.28);
+    }
+    /* Ball float animation inside fanus */
+    @keyframes floatBall {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      50% { transform: translate(12px, -14px) rotate(180deg); }
+      100% { transform: translate(0, 0) rotate(360deg); }
+    }
+    .floating-ball {
+      animation: floatBall 3.2s infinite ease-in-out;
+    }
+    /* Ball pop out and zoom animation */
+    @keyframes ballPopup {
+      0% { transform: scale(0.2) translateY(50px); opacity: 0; }
+      60% { transform: scale(1.15) translateY(-8px); opacity: 1; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .animate-ball-pop {
+      animation: ballPopup 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    /* Paper unfold animation */
+    @keyframes paperUnfold {
+      0% { transform: scaleY(0.1) scaleX(0.1); opacity: 0; }
+      50% { transform: scaleY(1.08) scaleX(0.5); opacity: 1; }
+      100% { transform: scaleY(1) scaleX(1); opacity: 1; }
+    }
+    .animate-paper-unfold {
+      animation: paperUnfold 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 flex flex-col justify-between p-2 sm:p-3 overflow-hidden selection:bg-amber-500 selection:text-slate-950">
+
+  <header class="w-full max-w-md mx-auto flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl p-2 sm:p-2.5 shadow-xl backdrop-blur-md flex-shrink-0">
+    <div class="flex items-center gap-2 min-w-0">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950 font-black text-base flex-shrink-0">
+        🎁
+      </div>
+      <div class="min-w-0">
+        <h1 class="text-xs font-extrabold tracking-wide text-amber-400 truncate leading-tight">SÜZENER MARKET</h1>
+        <p class="text-[9px] font-semibold text-slate-400 truncate">Resmî Çekiliş Sistemi</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 flex-shrink-0">
+      <button id="btnTabDraw" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md">Çekiliş</button>
+      <button id="btnTabAdmin" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200">Yönetim</button>
+    </div>
+  </header>
+
+  <main id="drawContent" class="w-full max-w-md mx-auto my-auto flex flex-col items-center justify-center gap-2.5 sm:gap-3 py-1 overflow-hidden flex-1">
+    
+    <!-- Fanus & Draw Card -->
+    <div class="w-full bg-slate-900/90 border-2 border-amber-500/40 rounded-3xl p-3 sm:p-4 shadow-2xl relative flex flex-col items-center justify-center max-h-[75vh]">
+      
+      <!-- Top Status Info -->
+      <div class="w-full flex items-center justify-between mb-1 px-1 flex-shrink-0">
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> AKTİF SİSTEM
+        </span>
+        <span id="txtRemainingStats" class="text-[10px] font-bold text-slate-300 bg-slate-950 px-2.5 py-0.5 rounded-full border border-slate-800">
+          Kalan Hediye: 0
+        </span>
+      </div>
+
+      <!-- Glass Fanus Container with Packed Floating Balls -->
+      <div class="fanus-bowl w-36 h-36 sm:w-48 sm:h-48 rounded-full relative overflow-hidden flex items-center justify-center my-1 flex-shrink-0">
+        <div class="absolute top-2 left-4 w-12 h-6 bg-white/10 rounded-full blur-md transform -rotate-45 pointer-events-none z-20"></div>
+
+        <div class="absolute inset-2 flex flex-wrap items-center justify-center gap-1 p-2 overflow-hidden pointer-events-none opacity-95">
+          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-amber-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0s;"></div>
+          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-rose-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.6s;"></div>
+          <div class="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-emerald-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.2s;"></div>
+          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-sky-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.3s;"></div>
+          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-purple-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.5s;"></div>
+          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-amber-300 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.9s;"></div>
+          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-indigo-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.8s;"></div>
+          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-teal-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.4s;"></div>
+          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-pink-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.1s;"></div>
+          <div class="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-orange-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.7s;"></div>
+          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-cyan-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.6s;"></div>
+          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-lime-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.2s;"></div>
+          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-fuchsia-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.3s;"></div>
+          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-yellow-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.8s;"></div>
+          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-violet-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.9s;"></div>
+          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-red-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.5s;"></div>
+          <div class="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-blue-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.4s;"></div>
+          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 2.1s;"></div>
+        </div>
+
+        <div class="absolute z-10 text-center bg-slate-950/85 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-amber-500/40 shadow-xl">
+          <p class="text-[10px] font-black text-amber-400">Şanslı Topu Bekliyor</p>
+          <p class="text-[9px] font-bold text-slate-300">10 TL At & Topu Çek!</p>
+        </div>
+      </div>
+
+      <button id="btnSpin" class="w-full mt-2 py-3 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black text-sm sm:text-base rounded-2xl shadow-xl shadow-amber-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 flex-shrink-0">
+        <i data-lucide="sparkles" class="w-4 h-4 fill-slate-950"></i>
+        <span>TOPU ÇEK (10 TL)</span>
+      </button>
+
+    </div>
+
+  </main>
+
+  <div id="adminContent" class="w-full max-w-md mx-auto my-auto hidden flex-col gap-2.5 py-1 overflow-hidden flex-1">
+    
+    <div id="adminAuthBox" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center my-auto">
+      <i data-lucide="lock" class="w-7 h-7 text-amber-400 mx-auto mb-2"></i>
+      <h2 class="text-xs font-bold text-slate-200 mb-2">Yönetim Paneli Girişi</h2>
+      <div class="flex gap-2 max-w-xs mx-auto">
+        <input type="password" id="inputAdminPin" placeholder="PIN Kodu" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-center font-bold text-slate-100 text-xs flex-1 focus:outline-none focus:border-amber-500">
+        <button id="btnAdminLogin" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs">Giriş Yap</button>
+      </div>
+      <p class="text-[9px] text-slate-500 mt-2">Varsayılan PIN: 1234</p>
+    </div>
+
+    <div id="adminPanelControls" class="hidden flex-col gap-2.5 overflow-hidden flex-1">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex-shrink-0">
+        <div class="flex items-center gap-2 mb-2 pb-1.5 border-b border-slate-800">
+          <i data-lucide="shuffle" class="w-3.5 h-3.5 text-amber-400"></i>
+          <h3 class="text-xs font-bold text-slate-100 uppercase tracking-wider">Algoritma & Sıfırlama</h3>
+        </div>
+
+        <div class="mb-2.5 bg-slate-950 p-2 rounded-xl border border-slate-800">
+          <label class="text-[10px] font-bold text-amber-400 block mb-0.5">OTOMATİK GECE KARIŞTIRMA</label>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] text-slate-300 font-semibold">Her Gece 00:00'da Otomatik Karıştır</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="chkAutoShuffle" class="sr-only peer" checked>
+              <div class="w-8 h-4 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-amber-500"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button id="btnShuffleNow" class="flex-1 py-1.5 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1">
+            <i data-lucide="refresh-cw" class="w-3 h-3"></i> Şimdi Karıştır
+          </button>
+          <button id="btnResetDraws" class="py-1.5 px-3 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1">
+            <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Sıfırla
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex flex-col flex-1 overflow-hidden">
+        <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-800 flex-shrink-0">
+          <div class="flex items-center gap-2">
+            <i data-lucide="box" class="w-3.5 h-3.5 text-amber-400"></i>
+            <h3 class="text-xs font-bold text-slate-100 uppercase tracking-wider">Hediye Stokları & Çıkma Şansı (%)</h3>
+          </div>
+          <span id="txtTotalTypes" class="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full">0 Çeşit</span>
+        </div>
+
+        <div class="grid grid-cols-4 gap-1.5 mb-2 text-xs flex-shrink-0">
+          <input type="text" id="inputNewItemName" placeholder="Hediye Adı" class="col-span-2 bg-slate-950 border border-slate-700 rounded-xl px-2 py-1.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs">
+          <input type="number" id="inputNewItemQty" placeholder="Stok" min="1" value="10" class="bg-slate-950 border border-slate-700 rounded-xl px-2 py-1.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs">
+          <input type="number" id="inputNewItemWeight" placeholder="Şans %" min="1" max="100" value="50" class="bg-slate-950 border border-slate-700 rounded-xl px-2 py-1.5 text-amber-300 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-xs">
+        </div>
+        <button id="btnAddInventoryItem" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-bold mb-2 flex items-center justify-center gap-1 flex-shrink-0">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i> Yeni Hediye Ekle
+        </button>
+
+        <div id="adminInventoryList" class="overflow-y-auto space-y-2 text-xs pr-1 custom-scrollbar flex-1">
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div id="modalResult" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden">
+    <div id="animationStage" class="relative flex flex-col items-center justify-center w-full max-w-xs">
+      
+      <div id="animBall" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-tr from-amber-600 via-amber-400 to-amber-200 border-4 border-white flex items-center justify-center shadow-2xl shadow-amber-500/50 text-slate-950 font-black text-2xl sm:text-3xl animate-ball-pop transition-all mb-4">
+        🎯
+      </div>
+
+      <div id="animPaper" class="bg-amber-50 text-slate-950 border-4 border-amber-600 rounded-3xl p-4 w-full text-center shadow-2xl relative animate-paper-unfold hidden">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-600 text-white text-[9px] font-extrabold px-3 py-0.5 rounded-full uppercase tracking-widest shadow">
+          RESMÎ ÇEKİLİŞ KARTI
+        </div>
+        <div class="mt-2 mb-2">
+          <p class="text-[9px] font-bold text-amber-800 uppercase tracking-wider">ÇEKİLEN NUMARA</p>
+          <h2 id="txtWinnerNumber" class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight my-0.5">#000</h2>
+        </div>
+        <div class="bg-amber-100/80 border border-amber-300 rounded-2xl p-2.5 my-2">
+          <p class="text-[9px] font-bold text-amber-900 mb-0.5">KAZANDIĞIN HEDİYE:</p>
+          <p id="txtWinnerPrize" class="text-sm sm:text-base font-black text-amber-950 leading-tight">Meyve Suyu</p>
+        </div>
+        <button id="btnCloseModal" class="w-full py-2 bg-slate-950 hover:bg-slate-900 text-amber-400 font-extrabold text-xs rounded-xl transition-all shadow-lg flex items-center justify-center gap-1.5">
+          <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+          <span>HEDİYEYİ TESLİM ET</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="customModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 max-w-xs w-full text-center shadow-2xl">
+      <h3 id="customModalTitle" class="text-xs font-bold text-amber-400 mb-1.5 uppercase tracking-wider">BİLGİ</h3>
+      <p id="customModalMessage" class="text-xs text-slate-200 mb-3 leading-relaxed">Mesaj metni buraya gelecek.</p>
+      <div id="customModalButtons" class="flex gap-2">
+        <button id="customModalOk" class="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-md">Tamam</button>
+        <button id="customModalCancel" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl hidden">İptal</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="w-full max-w-md mx-auto text-center py-0.5 text-[9px] text-slate-500 flex-shrink-0">
+    Hile Önlem Sistemi v6.5 • Her Hakkı Süzener Market'e Aittir
+  </footer>
+
+
+  <script>
+
+    // Initial Stock & Probability Configuration
+    const DEFAULT_INVENTORY = [
+      { id: 1, name: "Balon", qty: 200, weight: 90 },
+      { id: 2, name: "Küçük Meyve Suyu", qty: 150, weight: 85 },
+      { id: 3, name: "Bayrak", qty: 100, weight: 80 },
+      { id: 4, name: "Su", qty: 100, weight: 70 },
+      { id: 5, name: "2’li Hamburger", qty: 50, weight: 60 },
+      { id: 6, name: "2’li Lolipop Şeker", qty: 40, weight: 50 },
+      { id: 7, name: "Mısır Mini Paket", qty: 30, weight: 40 },
+      { id: 8, name: "Eti Puf", qty: 25, weight: 35 },
+      { id: 9, name: "Crax Sade Kraker", qty: 20, weight: 30 },
+      { id: 10, name: "Mini Araba / Kepçe", qty: 10, weight: 15 },
+      { id: 11, name: "Beslenme Çantası 🏆", qty: 2, weight: 1 },
+      { id: 12, name: "Günlük 🏆", qty: 1, weight: 1 },
+      { id: 13, name: "Yapboz 🏆", qty: 1, weight: 1 }
+    ];
+
+    let inventory = [];
+    let drawnNumbers = [];
+    let slotMapping = {};
+    let autoShuffleEnabled = true;
+    let lastShuffleDate = '';
+    let adminPin = '1234';
+    let isAdminAuthenticated = false;
+    let isSpinning = false;
+
+    function showNotification(title, message, isConfirm = false, onConfirm = null) {
+      const modal = document.getElementById('customModal');
+      const titleEl = document.getElementById('customModalTitle');
+      const msgEl = document.getElementById('customModalMessage');
+      const okBtn = document.getElementById('customModalOk');
+      const cancelBtn = document.getElementById('customModalCancel');
+
+      titleEl.textContent = title;
+      msgEl.textContent = message;
+
+      okBtn.onclick = () => {
+        modal.classList.add('hidden');
+        if (onConfirm) onConfirm(true);
+      };
+
+      if (isConfirm) {
+        cancelBtn.classList.remove('hidden');
+        cancelBtn.onclick = () => {
+          modal.classList.add('hidden');
+          if (onConfirm) onConfirm(false);
+        };
+      } else {
+        cancelBtn.classList.add('hidden');
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function getTotalStock() {
+      return inventory.reduce((acc, curr) => acc + (parseInt(curr.qty) || 0), 0);
+    }
+
+    function updateRemainingStats() {
+      const totalStock = getTotalStock();
+      document.getElementById('txtRemainingStats').textContent = `Kalan Hediye: ${totalStock}`;
+    }
+
+    // Global ses motoru değişkeni
+    let audioCtx = null;
+
+    function playBeepSound(freq = 440, duration = 0.05) {
+      try {
+        // Ses motoru henüz oluşturulmadıysa bir kez oluşturuyoruz
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        // Mobil tarayıcılarda askıda kalma durumuna karşı uyandırıyoruz
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.value = 0.08;
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        const startTime = audioCtx.currentTime;
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+      } catch (e) {}
+    }
+
+    function generateSlotMapping() {
+      let mapping = {};
+      let availableItems = inventory.filter(i => (parseInt(i.qty) || 0) > 0);
+      
+      if (availableItems.length === 0) {
+        for (let i = 1; i <= 1000; i++) mapping[i] = "Stok Bitti";
+        return mapping;
+      }
+
+      let pool = [];
+      availableItems.forEach(item => {
+        const weight = Math.max(1, parseInt(item.weight) || 1);
+        for (let w = 0; w < weight * 10; w++) {
+          pool.push(item.name);
+        }
+      });
+
+      for (let num = 1; num <= 1000; num++) {
+        const randomIndex = Math.floor(Math.random() * pool.length);
+        mapping[num] = pool[randomIndex];
+      }
+
+      return mapping;
+    }
+
+    function loadAppData() {
+      const savedInv = localStorage.getItem('suzener_inventory_v6_5') || localStorage.getItem('bakkal_inventory_v6_5');
+      inventory = savedInv ? JSON.parse(savedInv) : DEFAULT_INVENTORY;
+
+      const savedDrawn = localStorage.getItem('suzener_drawn_v6_5') || localStorage.getItem('bakkal_drawn_v6_5');
+      drawnNumbers = savedDrawn ? JSON.parse(savedDrawn) : [];
+
+      const savedAuto = localStorage.getItem('suzener_autoshuffle_v6_5') || localStorage.getItem('bakkal_autoshuffle_v6_5');
+      autoShuffleEnabled = savedAuto !== null ? JSON.parse(savedAuto) : true;
+
+      const savedDate = localStorage.getItem('suzener_lastdate_v6_5') || localStorage.getItem('bakkal_lastdate_v6_5');
+      lastShuffleDate = savedDate || '';
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const savedMap = localStorage.getItem('suzener_mapping_v6_5') || localStorage.getItem('bakkal_mapping_v6_5');
+      
+      if (autoShuffleEnabled && lastShuffleDate !== todayStr) {
+        slotMapping = generateSlotMapping();
+        lastShuffleDate = todayStr;
+        saveAppData();
+      } else if (savedMap) {
+        slotMapping = JSON.parse(savedMap);
+      } else {
+        slotMapping = generateSlotMapping();
+        lastShuffleDate = todayStr;
+        saveAppData();
+      }
+
+      updateRemainingStats();
+    }
+
+    // Birleştirilmiş ve düzeltilmiş tek saveAppData fonksiyonu
+    function saveAppData() {
+      const invJson = JSON.stringify(inventory);
+      const drawnJson = JSON.stringify(drawnNumbers);
+      const mapJson = JSON.stringify(slotMapping);
+      const autoJson = JSON.stringify(autoShuffleEnabled);
+
+      // Hem suzener hem de bakkal anahtarlarına yazarak geriye dönük uyumluluk sağlıyoruz
+      localStorage.setItem('suzener_inventory_v6_5', invJson);
+      localStorage.setItem('suzener_drawn_v6_5', drawnJson);
+      localStorage.setItem('suzener_mapping_v6_5', mapJson);
+      localStorage.setItem('suzener_autoshuffle_v6_5', autoJson);
+      localStorage.setItem('suzener_lastdate_v6_5', lastShuffleDate);
+
+      localStorage.setItem('bakkal_inventory_v6_5', invJson);
+      localStorage.setItem('bakkal_drawn_v6_5', drawnJson);
+      localStorage.setItem('bakkal_mapping_v6_5', mapJson);
+      localStorage.setItem('bakkal_autoshuffle_v6_5', autoJson);
+      localStorage.setItem('bakkal_lastdate_v6_5', lastShuffleDate);
+
+      updateRemainingStats();
+    }
+
+    function startDraw() {
+      if (isSpinning) return;
+      
+      const totalStock = getTotalStock();
+      if (totalStock <= 0) {
+        showNotification("Stok Bitti", "Tüm hediyelerin stoku bitti! Lütfen Yönetim'den stok ekleyin.");
+        return;
+      }
+
+      if (drawnNumbers.length >= 1000) {
+        showNotification("Çekiliş Tamamlandı", "Tüm 1000 numara çekildi! Lütfen Yönetim'den sıfırlayın.");
+        return;
+      }
+
+      let availableNums = [];
+      for (let i = 1; i <= 1000; i++) {
+        if (!drawnNumbers.includes(i)) {
+          const prizeName = slotMapping[i];
+          const matchItem = inventory.find(item => item.name === prizeName);
+          if (matchItem && matchItem.qty > 0) {
+            availableNums.push(i);
+          }
+        }
+      }
+
+      if (availableNums.length === 0) {
+        slotMapping = generateSlotMapping();
+        for (let i = 1; i <= 1000; i++) {
+          if (!drawnNumbers.includes(i)) {
+            const prizeName = slotMapping[i];
+            const matchItem = inventory.find(item => item.name === prizeName);
+            if (matchItem && matchItem.qty > 0) availableNums.push(i);
+          }
+        }
+      }
+
+      if (availableNums.length === 0) {
+        showNotification("Hata", "Stokta verecek hediye kalmadı!");
+        return;
+      }
+
+      const winNum = availableNums[Math.floor(Math.random() * availableNums.length)];
+      const winPrize = slotMapping[winNum] || "Sürpriz Hediye";
+      const winFormatted = String(winNum).padStart(3, '0');
+
+      isSpinning = true;
+      document.getElementById('btnSpin').disabled = true;
+
+      const modal = document.getElementById('modalResult');
+      const animBall = document.getElementById('animBall');
+      const animPaper = document.getElementById('animPaper');
+      
+      animBall.classList.remove('hidden');
+      animBall.textContent = `#${Math.floor(Math.random() * 900 + 100)}`;
+      animPaper.classList.add('hidden');
+      modal.classList.remove('hidden');
+
+      let tickCount = 0;
+      const tickInterval = setInterval(() => {
+        playBeepSound(500 + (tickCount % 4) * 80, 0.04);
+        animBall.textContent = `#${Math.floor(Math.random() * 900 + 100)}`;
+        tickCount++;
+      }, 100);
+
+      setTimeout(() => {
+        clearInterval(tickInterval);
+        playBeepSound(880, 0.15);
+
+        animBall.classList.add('hidden');
+        animPaper.classList.remove('hidden');
+
+        document.getElementById('txtWinnerNumber').textContent = `#${winFormatted}`;
+        document.getElementById('txtWinnerPrize').textContent = winPrize;
+
+        drawnNumbers.push(winNum);
+        const invIndex = inventory.findIndex(item => item.name === winPrize);
+        if (invIndex !== -1 && inventory[invIndex].qty > 0) {
+          inventory[invIndex].qty -= 1;
+        }
+        saveAppData();
+
+        try {
+          confetti({
+            particleCount: 100,
+            spread: 90,
+            origin: { y: 0.6 }
+          });
+        } catch (e) {}
+
+        isSpinning = false;
+        document.getElementById('btnSpin').disabled = false;
+
+      }, 1500);
+    }
+
+    function renderAdminInventory() {
+      const container = document.getElementById('adminInventoryList');
+      container.innerHTML = inventory.map((item, idx) => {
+        const weightVal = item.weight || 10;
+        const qtyVal = item.qty !== undefined ? item.qty : 10;
+        return `
+          <div class="py-2 px-2.5 bg-slate-950/80 border border-slate-800 rounded-xl">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="font-extrabold text-slate-100 text-xs truncate max-w-[170px]">${item.name}</span>
+              <button onclick="removeInventoryItem(${idx})" class="text-rose-400 hover:text-rose-300 p-1">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 text-[11px]">
+              <div class="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded-lg border border-slate-800">
+                <span class="text-slate-400">Stok:</span>
+                <input type="number" min="0" value="${qtyVal}" onchange="updateItemQty(${idx}, this.value)" class="w-14 bg-transparent font-bold text-amber-400 focus:outline-none">
+              </div>
+
+              <div class="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded-lg border border-slate-800">
+                <span class="text-slate-400">Şans:</span>
+                <span class="font-bold text-amber-300">%${weightVal}</span>
+              </div>
+            </div>
+
+            <div class="mt-2">
+              <input type="range" min="1" max="100" value="${weightVal}" onchange="updateItemWeight(${idx}, this.value)" class="w-full accent-amber-500 h-1 bg-slate-800 rounded-lg cursor-pointer">
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      document.getElementById('txtTotalTypes').textContent = `${inventory.length} Çeşit`;
+      try { lucide.createIcons(); } catch (e) {}
+    }
+
+    window.updateItemWeight = function(idx, val) {
+      inventory[idx].weight = parseInt(val) || 1;
+      slotMapping = generateSlotMapping();
+      saveAppData();
+      renderAdminInventory();
+    };
+
+    window.updateItemQty = function(idx, val) {
+      inventory[idx].qty = parseInt(val) || 0;
+      slotMapping = generateSlotMapping();
+      saveAppData();
+      renderAdminInventory();
+    };
+
+    window.removeInventoryItem = function(idx) {
+      inventory.splice(idx, 1);
+      slotMapping = generateSlotMapping();
+      saveAppData();
+      renderAdminInventory();
+    };
+
+    document.getElementById('btnSpin').addEventListener('click', startDraw);
+
+    document.getElementById('btnCloseModal').addEventListener('click', () => {
+      document.getElementById('modalResult').classList.add('hidden');
+    });
+
+    // Tab Navigation
+    document.getElementById('btnTabDraw').addEventListener('click', () => {
+      document.getElementById('drawContent').classList.remove('hidden');
+      document.getElementById('drawContent').classList.add('flex');
+      document.getElementById('adminContent').classList.add('hidden');
+      document.getElementById('adminContent').classList.remove('flex');
+
+      document.getElementById('btnTabDraw').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
+      document.getElementById('btnTabAdmin').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200";
+    });
+
+    document.getElementById('btnTabAdmin').addEventListener('click', () => {
+      document.getElementById('drawContent').classList.add('hidden');
+      document.getElementById('drawContent').classList.remove('flex');
+      document.getElementById('adminContent').classList.remove('hidden');
+      document.getElementById('adminContent').classList.add('flex');
+
+      document.getElementById('btnTabAdmin').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
+      document.getElementById('btnTabDraw').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200";
+    });
+
+    // Admin Auth
+    document.getElementById('btnAdminLogin').addEventListener('click', () => {
+      const pin = document.getElementById('inputAdminPin').value;
+      if (pin === adminPin) {
+        isAdminAuthenticated = true;
+        document.getElementById('adminAuthBox').classList.add('hidden');
+        document.getElementById('adminPanelControls').classList.remove('hidden');
+        document.getElementById('adminPanelControls').classList.add('flex');
+        
+        const chk = document.getElementById('chkAutoShuffle');
+        if (chk) {
+          chk.checked = autoShuffleEnabled;
+          chk.onchange = (e) => {
+            autoShuffleEnabled = e.target.checked;
+            saveAppData();
+          };
+        }
+
+        renderAdminInventory();
+      } else {
+        showNotification("Hata", "Hatalı PIN Kodu!");
+      }
+    });
+
+    // Admin Actions
+    document.getElementById('btnAddInventoryItem').addEventListener('click', () => {
+      const name = document.getElementById('inputNewItemName').value.trim();
+      const qty = parseInt(document.getElementById('inputNewItemQty').value) || 10;
+      const weight = parseInt(document.getElementById('inputNewItemWeight').value) || 50;
+
+      if (name) {
+        inventory.push({ id: Date.now(), name, qty, weight });
+        document.getElementById('inputNewItemName').value = '';
+        slotMapping = generateSlotMapping();
+        saveAppData();
+        renderAdminInventory();
+      } else {
+        showNotification("Uyarı", "Lütfen hediye adı girin.");
+      }
+    });
+
+    document.getElementById('btnShuffleNow').addEventListener('click', () => {
+      slotMapping = generateSlotMapping();
+      saveAppData();
+      showNotification("Başarılı", "Tüm numaralar yeni stok ve oranlara göre karıştırıldı!");
+    });
+
+    document.getElementById('btnResetDraws').addEventListener('click', () => {
+      showNotification("Onay", "Çekilen tüm numaralar sıfırlansın mı?", true, (confirmed) => {
+        if (confirmed) {
+          drawnNumbers = [];
+          saveAppData();
+          showNotification("Başarılı", "Çekiliş sıfırlandı!");
+        }
+      });
+    });
+
+    // Initialize App
+    window.onload = function() {
+      loadAppData();
+      try { lucide.createIcons(); } catch(e) {}
+    };
+  </script>
+
+	<script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('Süzener Market PWA Aktif! Kayıt Başarılı:', reg.scope))
+            .catch(err => console.log('Service Worker Kayıt Hatası:', err));
+        });
+      }
+    </script>
+
+</body>
+</html>
