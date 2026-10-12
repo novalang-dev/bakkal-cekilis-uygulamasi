@@ -19,6 +19,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   
   <style>
@@ -88,7 +90,7 @@
       </div>
       <div class="min-w-0 flex-1">
         <h1 class="text-[11px] font-extrabold tracking-wide text-amber-400 truncate leading-tight">SÜZENER MARKET</h1>
-        <p class="text-[8px] font-semibold text-slate-400 truncate">Resmî Çekiliş Sistemi</p>
+        <p class="text-[8px] font-semibold text-slate-400 truncate">Resmî Çekiliş Sistemi (Bulut)</p>
       </div>
     </div>
     <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 flex-shrink-0">
@@ -105,14 +107,14 @@
       <!-- Top Status Info -->
       <div class="w-full flex items-center justify-between mb-1.5 px-1 flex-shrink-0">
         <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> AKTİF SİSTEM
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> BULUT SENKRONİZE
         </span>
         <span id="txtRemainingStats" class="text-[10px] font-bold text-slate-300 bg-slate-950 px-2.5 py-0.5 rounded-full border border-slate-800">
           Kalan Hediye: 0
         </span>
       </div>
 
-      <!-- Tıklanabilir Cam Fanus Container (Boyutu küçültüldü, taşma önlendi) -->
+      <!-- Tıklanabilir Cam Fanus Container -->
       <div id="fanusContainer" class="fanus-bowl w-36 h-36 sm:w-48 sm:h-48 rounded-full relative overflow-hidden flex items-center justify-center my-1 cursor-pointer hover:scale-[1.02] active:scale-95 transition-all shadow-2xl group">
         <div class="absolute top-2 left-4 w-12 h-6 bg-white/10 rounded-full blur-md transform -rotate-45 pointer-events-none z-20"></div>
 
@@ -207,7 +209,7 @@
 
   </div>
 
-  <!-- BÜYÜTÜLMÜŞ KAZANÇ / SONUÇ MODALI -->
+  <!-- KAZANÇ / SONUÇ MODALI -->
   <div id="modalResult" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
     <div id="animationStage" class="relative flex flex-col items-center justify-center w-full max-w-sm">
       
@@ -248,7 +250,13 @@
   </div>
 
   <script>
-    // Initial Stock & Probability Configuration
+    // ==========================================
+    // SUPABASE BAĞLANTI AYARLARI
+    // ==========================================
+    const SUPABASE_URL = 'https://kfrlpvjpivkiojsowbzw.supabase.co'; 
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcmxwdmpwaXZraW9qc293Ynp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3ODc3NTAsImV4cCI6MjEwNzM2Mzc1MH0.UrycoXFp2oqRGhYZG1DbYv00qfIG8muFUNENMxjnFVM';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     const DEFAULT_INVENTORY = [
       { id: 1, name: "Balon", qty: 200, weight: 90 },
       { id: 2, name: "Küçük Meyve Suyu", qty: 150, weight: 85 },
@@ -311,36 +319,27 @@
       document.getElementById('txtRemainingStats').textContent = `Kalan Hediye: ${totalStock}`;
     }
 
-    // Global ses motoru değişkeni
+    // Global ses motoru
     let audioCtx = null;
-
     function playBeepSound(freq = 440, duration = 0.05) {
       try {
-        if (!audioCtx) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume();
-        }
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
 
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        
         osc.type = 'sine';
         osc.frequency.value = freq;
         gain.gain.value = 0.08;
-        
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-        
         const startTime = audioCtx.currentTime;
         osc.start(startTime);
         osc.stop(startTime + duration);
       } catch (e) {}
     }
 
-    function generateSlotMapping() {
+    function generateSlotMappingInMemory() {
       let mapping = {};
       let availableItems = inventory.filter(i => (parseInt(i.qty) || 0) > 0);
       
@@ -361,63 +360,84 @@
         const randomIndex = Math.floor(Math.random() * pool.length);
         mapping[num] = pool[randomIndex];
       }
-
       return mapping;
     }
 
-    function loadAppData() {
-      const savedInv = localStorage.getItem('suzener_inventory_v6_5') || localStorage.getItem('bakkal_inventory_v6_5');
-      inventory = savedInv ? JSON.parse(savedInv) : DEFAULT_INVENTORY;
+    // ==========================================
+    // BULUT VERİ YÜKLEME VE SENKRONİZASYON
+    // ==========================================
+    async function loadAppData() {
+      try {
+        let { data: invData } = await supabaseClient.from('inventory').select('*');
+        if (!invData || invData.length === 0) {
+          await supabaseClient.from('inventory').upsert(DEFAULT_INVENTORY);
+          inventory = DEFAULT_INVENTORY;
+        } else {
+          inventory = invData;
+        }
 
-      const savedDrawn = localStorage.getItem('suzener_drawn_v6_5') || localStorage.getItem('bakkal_drawn_v6_5');
-      drawnNumbers = savedDrawn ? JSON.parse(savedDrawn) : [];
+        let { data: drawnData } = await supabaseClient.from('drawn_numbers').select('*');
+        drawnNumbers = drawnData ? drawnData.map(d => d.draw_number) : [];
 
-      const savedAuto = localStorage.getItem('suzener_autoshuffle_v6_5') || localStorage.getItem('bakkal_autoshuffle_v6_5');
-      autoShuffleEnabled = savedAuto !== null ? JSON.parse(savedAuto) : true;
+        let { data: mapData } = await supabaseClient.from('slot_mapping').select('*');
+        if (!mapData || mapData.length === 0) {
+          slotMapping = generateSlotMappingInMemory();
+          await saveSlotMappingToCloud();
+        } else {
+          slotMapping = {};
+          mapData.forEach(row => {
+            slotMapping[row.slot_number] = row.prize_name;
+          });
+        }
 
-      const savedDate = localStorage.getItem('suzener_lastdate_v6_5') || localStorage.getItem('bakkal_lastdate_v6_5');
-      lastShuffleDate = savedDate || '';
+        let { data: settingsData } = await supabaseClient.from('app_settings').select('*');
+        if (settingsData) {
+          settingsData.forEach(s => {
+            if (s.key === 'auto_shuffle') autoShuffleEnabled = s.value === 'true';
+            if (s.key === 'last_shuffle_date') lastShuffleDate = s.value;
+          });
+        }
 
-      const todayStr = new Date().toISOString().split('T')[0];
-      const savedMap = localStorage.getItem('suzener_mapping_v6_5') || localStorage.getItem('bakkal_mapping_v6_5');
-      
-      if (autoShuffleEnabled && lastShuffleDate !== todayStr) {
-        slotMapping = generateSlotMapping();
-        lastShuffleDate = todayStr;
-        saveAppData();
-      } else if (savedMap) {
-        slotMapping = JSON.parse(savedMap);
-      } else {
-        slotMapping = generateSlotMapping();
-        lastShuffleDate = todayStr;
-        saveAppData();
+        updateRemainingStats();
+        if (isAdminAuthenticated) renderAdminInventory();
+      } catch (e) {
+        console.error("Bulut veri yükleme hatası:", e);
       }
+    }
 
+    async function saveInventoryToCloud() {
+      await supabaseClient.from('inventory').upsert(inventory);
       updateRemainingStats();
     }
 
-    function saveAppData() {
-      const invJson = JSON.stringify(inventory);
-      const drawnJson = JSON.stringify(drawnNumbers);
-      const mapJson = JSON.stringify(slotMapping);
-      const autoJson = JSON.stringify(autoShuffleEnabled);
-
-      localStorage.setItem('suzener_inventory_v6_5', invJson);
-      localStorage.setItem('suzener_drawn_v6_5', drawnJson);
-      localStorage.setItem('suzener_mapping_v6_5', mapJson);
-      localStorage.setItem('suzener_autoshuffle_v6_5', autoJson);
-      localStorage.setItem('suzener_lastdate_v6_5', lastShuffleDate);
-
-      localStorage.setItem('bakkal_inventory_v6_5', invJson);
-      localStorage.setItem('bakkal_drawn_v6_5', drawnJson);
-      localStorage.setItem('bakkal_mapping_v6_5', mapJson);
-      localStorage.setItem('bakkal_autoshuffle_v6_5', autoJson);
-      localStorage.setItem('bakkal_lastdate_v6_5', lastShuffleDate);
-
-      updateRemainingStats();
+    async function saveSlotMappingToCloud() {
+      const rows = Object.keys(slotMapping).map(num => ({
+        slot_number: parseInt(num),
+        prize_name: slotMapping[num]
+      }));
+      await supabaseClient.from('slot_mapping').upsert(rows);
     }
 
-    function startDraw() {
+    async function saveSettingsToCloud() {
+      await supabaseClient.from('app_settings').upsert([
+        { key: 'auto_shuffle', value: String(autoShuffleEnabled) },
+        { key: 'last_shuffle_date', value: lastShuffleDate }
+      ]);
+    }
+
+    function setupRealtimeSync() {
+      supabaseClient
+        .channel('public-db-changes')
+        .on('postgres_changes', { event: '*', schema: 'public' }, payload => {
+          loadAppData();
+        })
+        .subscribe();
+    }
+
+    // ==========================================
+    // ÇEKİLİŞ İŞLEMİ
+    // ==========================================
+    async function startDraw() {
       if (isSpinning) return;
       
       const totalStock = getTotalStock();
@@ -443,7 +463,8 @@
       }
 
       if (availableNums.length === 0) {
-        slotMapping = generateSlotMapping();
+        slotMapping = generateSlotMappingInMemory();
+        await saveSlotMappingToCloud();
         for (let i = 1; i <= 1000; i++) {
           if (!drawnNumbers.includes(i)) {
             const prizeName = slotMapping[i];
@@ -480,7 +501,7 @@
         tickCount++;
       }, 100);
 
-      setTimeout(() => {
+      setTimeout(async () => {
         clearInterval(tickInterval);
         playBeepSound(880, 0.15);
 
@@ -490,23 +511,20 @@
         document.getElementById('txtWinnerNumber').textContent = `#${winFormatted}`;
         document.getElementById('txtWinnerPrize').textContent = winPrize;
 
+        await supabaseClient.from('drawn_numbers').insert([{ draw_number: winNum, prize_name: winPrize }]);
         drawnNumbers.push(winNum);
+
         const invIndex = inventory.findIndex(item => item.name === winPrize);
         if (invIndex !== -1 && inventory[invIndex].qty > 0) {
           inventory[invIndex].qty -= 1;
+          await saveInventoryToCloud();
         }
-        saveAppData();
 
         try {
-          confetti({
-            particleCount: 100,
-            spread: 90,
-            origin: { y: 0.6 }
-          });
+          confetti({ particleCount: 100, spread: 90, origin: { y: 0.6 } });
         } catch (e) {}
 
         isSpinning = false;
-
       }, 1500);
     }
 
@@ -547,28 +565,31 @@
       try { lucide.createIcons(); } catch (e) {}
     }
 
-    window.updateItemWeight = function(idx, val) {
+    window.updateItemWeight = async function(idx, val) {
       inventory[idx].weight = parseInt(val) || 1;
-      slotMapping = generateSlotMapping();
-      saveAppData();
+      slotMapping = generateSlotMappingInMemory();
+      await saveInventoryToCloud();
+      await saveSlotMappingToCloud();
       renderAdminInventory();
     };
 
-    window.updateItemQty = function(idx, val) {
+    window.updateItemQty = async function(idx, val) {
       inventory[idx].qty = parseInt(val) || 0;
-      slotMapping = generateSlotMapping();
-      saveAppData();
+      slotMapping = generateSlotMappingInMemory();
+      await saveInventoryToCloud();
+      await saveSlotMappingToCloud();
       renderAdminInventory();
     };
 
-    window.removeInventoryItem = function(idx) {
+    window.removeInventoryItem = async function(idx) {
       inventory.splice(idx, 1);
-      slotMapping = generateSlotMapping();
-      saveAppData();
+      slotMapping = generateSlotMappingInMemory();
+      await saveInventoryToCloud();
+      await saveSlotMappingToCloud();
       renderAdminInventory();
     };
 
-    // Fanusa tıklama olayı
+    // Fanus tıklama
     document.getElementById('fanusContainer').addEventListener('click', startDraw);
 
     document.getElementById('btnCloseModal').addEventListener('click', () => {
@@ -608,9 +629,9 @@
         const chk = document.getElementById('chkAutoShuffle');
         if (chk) {
           chk.checked = autoShuffleEnabled;
-          chk.onchange = (e) => {
+          chk.onchange = async (e) => {
             autoShuffleEnabled = e.target.checked;
-            saveAppData();
+            await saveSettingsToCloud();
           };
         }
 
@@ -621,7 +642,7 @@
     });
 
     // Admin Actions
-    document.getElementById('btnAddInventoryItem').addEventListener('click', () => {
+    document.getElementById('btnAddInventoryItem').addEventListener('click', async () => {
       const name = document.getElementById('inputNewItemName').value.trim();
       const qty = parseInt(document.getElementById('inputNewItemQty').value) || 10;
       const weight = parseInt(document.getElementById('inputNewItemWeight').value) || 50;
@@ -629,45 +650,37 @@
       if (name) {
         inventory.push({ id: Date.now(), name, qty, weight });
         document.getElementById('inputNewItemName').value = '';
-        slotMapping = generateSlotMapping();
-        saveAppData();
+        slotMapping = generateSlotMappingInMemory();
+        await saveInventoryToCloud();
+        await saveSlotMappingToCloud();
         renderAdminInventory();
       } else {
         showNotification("Uyarı", "Lütfen hediye adı girin.");
       }
     });
 
-    document.getElementById('btnShuffleNow').addEventListener('click', () => {
-      slotMapping = generateSlotMapping();
-      saveAppData();
+    document.getElementById('btnShuffleNow').addEventListener('click', async () => {
+      slotMapping = generateSlotMappingInMemory();
+      await saveSlotMappingToCloud();
       showNotification("Başarılı", "Tüm numaralar yeni stok ve oranlara göre karıştırıldı!");
     });
 
     document.getElementById('btnResetDraws').addEventListener('click', () => {
-      showNotification("Onay", "Çekilen tüm numaralar sıfırlansın mı?", true, (confirmed) => {
+      showNotification("Onay", "Çekilen tüm numaralar sıfırlansın mı?", true, async (confirmed) => {
         if (confirmed) {
+          await supabaseClient.from('drawn_numbers').delete().neq('draw_number', 0);
           drawnNumbers = [];
-          saveAppData();
           showNotification("Başarılı", "Çekiliş sıfırlandı!");
         }
       });
     });
 
     // Initialize App
-    window.onload = function() {
-      loadAppData();
+    window.onload = async function() {
+      await loadAppData();
+      setupRealtimeSync();
       try { lucide.createIcons(); } catch(e) {}
     };
-  </script>
-
-  <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('Süzener Market PWA Aktif! Kayıt Başarılı:', reg.scope))
-            .catch(err => console.log('Service Worker Kayıt Hatası:', err));
-        });
-      }
   </script>
 
 </body>
