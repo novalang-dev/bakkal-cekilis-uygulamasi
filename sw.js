@@ -1,4 +1,4 @@
-const CACHE_NAME = 'suzener-market-v11';
+const CACHE_NAME = 'suzener-market-v12';
 const ASSETS = [
   './',
   './index.html',
@@ -30,16 +30,16 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// İstekleri Yönetme (Fetch)
+// İstekleri Yönetme (Fetch) - Hata Patlatmayan Güvenli Sürüm
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
 
-  // 1. Supabase ve dış CDN isteklerini Service Worker'a hiç bulaştırma (Doğrudan ağa bırak)
+  // 1. Supabase ve dış CDN isteklerini Service Worker'a hiç bulaştırma
   if (url.hostname.includes('supabase.co') || url.hostname.includes('jsdelivr.net') || url.hostname.includes('unpkg.com')) {
     return; 
   }
 
-  // 2. Kendi dosyalarımız için Önce Ağ, İnternet yoksa Önbellek (Network-First)
+  // 2. Kendi dosyalarımız için Önce Ağ, bulamazsa Önbellek
   e.respondWith(
     fetch(e.request)
       .then((response) => {
@@ -51,8 +51,17 @@ self.addEventListener('fetch', (e) => {
         }
         return response;
       })
-      .catch(() => {
-        return caches.match(e.request);
+      .catch(async () => {
+        // Önbellekte ara
+        const cachedResponse = await caches.match(e.request);
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        // Önbellekte de yoksa hataya düşmemek için boş bir Response dön
+        return new Response('Kaynak bulunamadı', { 
+          status: 404, 
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+        });
       })
   );
 });
