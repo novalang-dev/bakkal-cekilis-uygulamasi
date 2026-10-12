@@ -80,19 +80,20 @@
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col justify-between p-2 sm:p-3 overflow-hidden selection:bg-amber-500 selection:text-slate-950">
 
-  <header class="w-full max-w-md mx-auto flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl p-2 sm:p-2.5 shadow-xl backdrop-blur-md flex-shrink-0">
-    <div class="flex items-center gap-2 min-w-0">
-      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950 font-black text-base flex-shrink-0">
+  <!-- Küçültülmüş ve Çakışması Engellenmiş Üst Header -->
+  <header class="w-full max-w-md mx-auto flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl px-3 py-2 shadow-xl backdrop-blur-md flex-shrink-0 gap-2">
+    <div class="flex items-center gap-2 min-w-0 flex-1">
+      <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950 font-black text-sm flex-shrink-0">
         🎁
       </div>
-      <div class="min-w-0">
-        <h1 class="text-xs font-extrabold tracking-wide text-amber-400 truncate leading-tight">SÜZENER MARKET</h1>
-        <p class="text-[9px] font-semibold text-slate-400 truncate">Resmî Çekiliş Sistemi</p>
+      <div class="min-w-0 flex-1">
+        <h1 class="text-[11px] font-extrabold tracking-wide text-amber-400 truncate leading-tight">SÜZENER MARKET</h1>
+        <p class="text-[8px] font-semibold text-slate-400 truncate">Resmî Çekiliş Sistemi</p>
       </div>
     </div>
     <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 flex-shrink-0">
-      <button id="btnTabDraw" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md">Çekiliş</button>
-      <button id="btnTabAdmin" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200">Yönetim</button>
+      <button id="btnTabDraw" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all bg-amber-500 text-slate-950 shadow-md">Çekiliş</button>
+      <button id="btnTabAdmin" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all text-slate-400 hover:text-slate-200">Yönetim</button>
     </div>
   </header>
 
@@ -217,27 +218,28 @@
 
   </div>
 
-  <div id="modalResult" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden">
-    <div id="animationStage" class="relative flex flex-col items-center justify-center w-full max-w-xs">
+  <!-- BÜYÜTÜLMÜŞ KAZANÇ / SONUÇ MODALI -->
+  <div id="modalResult" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div id="animationStage" class="relative flex flex-col items-center justify-center w-full max-w-sm">
       
-      <div id="animBall" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-tr from-amber-600 via-amber-400 to-amber-200 border-4 border-white flex items-center justify-center shadow-2xl shadow-amber-500/50 text-slate-950 font-black text-2xl sm:text-3xl animate-ball-pop transition-all mb-4">
+      <div id="animBall" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-amber-600 via-amber-400 to-amber-200 border-4 border-white flex items-center justify-center shadow-2xl shadow-amber-500/50 text-slate-950 font-black text-3xl sm:text-4xl animate-ball-pop transition-all mb-4">
         🎯
       </div>
 
-      <div id="animPaper" class="bg-amber-50 text-slate-950 border-4 border-amber-600 rounded-3xl p-4 w-full text-center shadow-2xl relative animate-paper-unfold hidden">
-        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-600 text-white text-[9px] font-extrabold px-3 py-0.5 rounded-full uppercase tracking-widest shadow">
+      <div id="animPaper" class="bg-amber-50 text-slate-950 border-4 border-amber-600 rounded-3xl p-6 sm:p-7 w-full text-center shadow-2xl relative animate-paper-unfold hidden">
+        <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-600 text-white text-[10px] font-extrabold px-3.5 py-1 rounded-full uppercase tracking-widest shadow">
           RESMÎ ÇEKİLİŞ KARTI
         </div>
-        <div class="mt-2 mb-2">
-          <p class="text-[9px] font-bold text-amber-800 uppercase tracking-wider">ÇEKİLEN NUMARA</p>
-          <h2 id="txtWinnerNumber" class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight my-0.5">#000</h2>
+        <div class="mt-2 mb-3">
+          <p class="text-[10px] font-bold text-amber-800 uppercase tracking-wider">ÇEKİLEN NUMARA</p>
+          <h2 id="txtWinnerNumber" class="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight my-1">#000</h2>
         </div>
-        <div class="bg-amber-100/80 border border-amber-300 rounded-2xl p-2.5 my-2">
-          <p class="text-[9px] font-bold text-amber-900 mb-0.5">KAZANDIĞIN HEDİYE:</p>
-          <p id="txtWinnerPrize" class="text-sm sm:text-base font-black text-amber-950 leading-tight">Meyve Suyu</p>
+        <div class="bg-amber-100/90 border border-amber-300 rounded-2xl p-4 my-3">
+          <p class="text-[10px] font-bold text-amber-900 mb-1">KAZANDIĞIN HEDİYE:</p>
+          <p id="txtWinnerPrize" class="text-lg sm:text-xl font-black text-amber-950 leading-snug">Meyve Suyu</p>
         </div>
-        <button id="btnCloseModal" class="w-full py-2 bg-slate-950 hover:bg-slate-900 text-amber-400 font-extrabold text-xs rounded-xl transition-all shadow-lg flex items-center justify-center gap-1.5">
-          <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+        <button id="btnCloseModal" class="w-full py-3 bg-slate-950 hover:bg-slate-900 text-amber-400 font-extrabold text-sm rounded-xl transition-all shadow-lg flex items-center justify-center gap-2">
+          <i data-lucide="check-circle" class="w-4 h-4"></i>
           <span>HEDİYEYİ TESLİM ET</span>
         </button>
       </div>
@@ -256,13 +258,7 @@
     </div>
   </div>
 
-  <footer class="w-full max-w-md mx-auto text-center py-0.5 text-[9px] text-slate-500 flex-shrink-0">
-    Hile Önlem Sistemi v6.5 • Her Hakkı Süzener Market'e Aittir
-  </footer>
-
-
   <script>
-
     // Initial Stock & Probability Configuration
     const DEFAULT_INVENTORY = [
       { id: 1, name: "Balon", qty: 200, weight: 90 },
@@ -331,12 +327,10 @@
 
     function playBeepSound(freq = 440, duration = 0.05) {
       try {
-        // Ses motoru henüz oluşturulmadıysa bir kez oluşturuyoruz
         if (!audioCtx) {
           audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
 
-        // Mobil tarayıcılarda askıda kalma durumuna karşı uyandırıyoruz
         if (audioCtx.state === 'suspended') {
           audioCtx.resume();
         }
@@ -413,14 +407,12 @@
       updateRemainingStats();
     }
 
-    // Birleştirilmiş ve düzeltilmiş tek saveAppData fonksiyonu
     function saveAppData() {
       const invJson = JSON.stringify(inventory);
       const drawnJson = JSON.stringify(drawnNumbers);
       const mapJson = JSON.stringify(slotMapping);
       const autoJson = JSON.stringify(autoShuffleEnabled);
 
-      // Hem suzener hem de bakkal anahtarlarına yazarak geriye dönük uyumluluk sağlıyoruz
       localStorage.setItem('suzener_inventory_v6_5', invJson);
       localStorage.setItem('suzener_drawn_v6_5', drawnJson);
       localStorage.setItem('suzener_mapping_v6_5', mapJson);
@@ -602,8 +594,8 @@
       document.getElementById('adminContent').classList.add('hidden');
       document.getElementById('adminContent').classList.remove('flex');
 
-      document.getElementById('btnTabDraw').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
-      document.getElementById('btnTabAdmin').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200";
+      document.getElementById('btnTabDraw').className = "px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
+      document.getElementById('btnTabAdmin').className = "px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all text-slate-400 hover:text-slate-200";
     });
 
     document.getElementById('btnTabAdmin').addEventListener('click', () => {
@@ -612,8 +604,8 @@
       document.getElementById('adminContent').classList.remove('hidden');
       document.getElementById('adminContent').classList.add('flex');
 
-      document.getElementById('btnTabAdmin').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
-      document.getElementById('btnTabDraw').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-slate-200";
+      document.getElementById('btnTabAdmin').className = "px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all bg-amber-500 text-slate-950 shadow-md";
+      document.getElementById('btnTabDraw').className = "px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all text-slate-400 hover:text-slate-200";
     });
 
     // Admin Auth
@@ -680,7 +672,7 @@
     };
   </script>
 
-	<script>
+  <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('./sw.js')
@@ -688,7 +680,7 @@
             .catch(err => console.log('Service Worker Kayıt Hatası:', err));
         });
       }
-    </script>
+  </script>
 
 </body>
 </html>
