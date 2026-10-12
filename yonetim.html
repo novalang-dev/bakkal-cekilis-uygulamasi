@@ -266,30 +266,35 @@
     }
 
     async function saveInventoryToCloud() {
-      try {
-        await supabaseClient.from('inventory').upsert(inventory);
-      } catch (e) {}
-      renderAdminInventory();
-    }
+  localStorage.setItem('suzener_offline_inv', JSON.stringify(inventory));
+  try {
+    // { onConflict: 'id' } eklendi
+    await supabaseClient.from('inventory').upsert(inventory, { onConflict: 'id' });
+  } catch (e) {}
+  updateRemainingStats(); // (yonetim.html'de renderAdminInventory() olabilir)
+}
 
     async function saveSlotMappingToCloud() {
-      try {
-        const rows = Object.keys(slotMapping).map(num => ({
-          slot_number: parseInt(num),
-          prize_name: slotMapping[num]
-        }));
-        await supabaseClient.from('slot_mapping').upsert(rows);
-      } catch (e) {}
-    }
+  localStorage.setItem('suzener_offline_map', JSON.stringify(slotMapping));
+  try {
+    const rows = Object.keys(slotMapping).map(num => ({
+      slot_number: parseInt(num),
+      prize_name: slotMapping[num]
+    }));
+    // { onConflict: 'slot_number' } eklendi
+    await supabaseClient.from('slot_mapping').upsert(rows, { onConflict: 'slot_number' });
+  } catch (e) {}
+}
 
     async function saveSettingsToCloud() {
-      try {
-        await supabaseClient.from('app_settings').upsert([
-          { key: 'auto_shuffle', value: String(autoShuffleEnabled) },
-          { key: 'last_shuffle_date', value: lastShuffleDate }
-        ]);
-      } catch (e) {}
-    }
+  try {
+    // { onConflict: 'key' } eklendi
+    await supabaseClient.from('app_settings').upsert([
+      { key: 'auto_shuffle', value: String(autoShuffleEnabled) },
+      { key: 'last_shuffle_date', value: lastShuffleDate }
+    ], { onConflict: 'key' });
+  } catch (e) {}
+}
 
     function renderAdminInventory() {
       const container = document.getElementById('adminInventoryList');
