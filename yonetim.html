@@ -57,10 +57,10 @@
     <h2 class="text-lg font-extrabold text-slate-100 mb-2">Yönetim Paneline Giriş</h2>
     <p class="text-xs text-slate-400 mb-6">Stokları ve çekiliş oranlarını değiştirmek için PIN kodunu girin.</p>
     <div class="flex gap-2 max-w-xs mx-auto">
-      <input type="password" id="inputAdminPin" placeholder="PIN Kodu (1234)" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-center font-bold text-slate-100 text-sm flex-1 focus:outline-none focus:border-amber-500">
+      <input type="password" id="inputAdminPin" placeholder="PIN Kodu" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-center font-bold text-slate-100 text-sm flex-1 focus:outline-none focus:border-amber-500">
       <button id="btnAdminLogin" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-5 py-3 rounded-xl text-sm transition-all shadow-lg">Giriş</button>
     </div>
-    <p class="text-[10px] text-slate-500 mt-4">Varsayılan PIN: 1234</p>
+    <p class="text-[10px] text-slate-500 mt-4">PIN Supabase Veritabanından Dinamik Okunur</p>
   </div>
 
   <!-- ANA YÖNETİM PANELİ -->
@@ -166,7 +166,7 @@
     let slotMapping = {};
     let autoShuffleEnabled = true;
     let lastShuffleDate = '';
-    const adminPin = '1234';
+    let currentAdminPin = '1234'; // Supabase'den dinamik olarak çekilecek
 
     function showNotification(title, message, isConfirm = false, onConfirm = null) {
       const modal = document.getElementById('customModal');
@@ -218,6 +218,19 @@
         mapping[num] = pool[randomIndex];
       }
       return mapping;
+    }
+
+    async function fetchAdminPin() {
+      try {
+        let { data } = await supabaseClient
+          .from('app_settings')
+          .select('value')
+          .eq('key', 'admin_pin')
+          .single();
+        if (data && data.value) {
+          currentAdminPin = data.value;
+        }
+      } catch (e) {}
     }
 
     async function loadAppData() {
@@ -335,22 +348,19 @@
       slotMapping = generateSlotMappingInMemory();
 
       try {
-        // Supabase'den ilgili ürünü ID'sine göre tamamen sil
         if (removedItem && removedItem.id) {
           await supabaseClient.from('inventory').delete().eq('id', removedItem.id);
         }
-      } catch (e) {
-        console.error("Supabase silme hatası:", e);
-      }
+      } catch (e) {}
 
       await saveInventoryToCloud();
       await saveSlotMappingToCloud();
-      renderAdminInventory();
     };
 
     document.getElementById('btnAdminLogin').addEventListener('click', async () => {
+      await fetchAdminPin(); // En güncel PIN'i veritabanından sorgula
       const pin = document.getElementById('inputAdminPin').value;
-      if (pin === adminPin) {
+      if (pin === currentAdminPin) {
         document.getElementById('adminAuthBox').classList.add('hidden');
         document.getElementById('adminPanelControls').classList.remove('hidden');
         document.getElementById('adminPanelControls').classList.add('flex');
@@ -366,7 +376,7 @@
           };
         }
       } else {
-        showNotification("Hata", "Hatalı PIN Kodu! (Varsayılan: 1234)");
+        showNotification("Hata", "Hatalı PIN Kodu!");
       }
     });
 
@@ -406,7 +416,10 @@
       });
     });
 
-    try { lucide.createIcons(); } catch(e) {}
+    window.onload = async function() {
+      await fetchAdminPin();
+      try { lucide.createIcons(); } catch(e) {}
+    };
   </script>
 
 </body>
