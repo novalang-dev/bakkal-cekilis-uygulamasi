@@ -42,7 +42,10 @@
       </div>
     </div>
     <div class="flex items-center gap-3">
-      <span id="txtTotalTypes" class="text-xs bg-amber-500/10 text-amber-300 font-bold px-3 py-1.5 rounded-xl border border-amber-500/20">0 Çeşit Hediye</span>
+      <a href="logs.html" target="_blank" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all shadow-lg">
+        <i data-lucide="activity" class="w-4 h-4"></i> Canlı Loglar
+      </a>
+      <span id="txtTotalTypes" class="text-xs bg-amber-500/10 text-amber-300 font-bold px-3 py-2 rounded-xl border border-amber-500/20">0 Çeşit Hediye</span>
     </div>
   </header>
 
@@ -60,13 +63,11 @@
     <p class="text-[10px] text-slate-500 mt-4">Varsayılan PIN: 1234</p>
   </div>
 
-  <!-- ANA YÖNETİM PANELİ (Giriş Yapılınca Görünür) -->
+  <!-- ANA YÖNETİM PANELİ -->
   <main id="adminPanelControls" class="w-full max-w-4xl mx-auto hidden flex-col gap-6 flex-1">
     
-    <!-- Üst Kontroller Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       
-      <!-- Algoritma & Sıfırlama Kartı -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
         <div>
           <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-800">
@@ -96,7 +97,6 @@
         </div>
       </div>
 
-      <!-- Yeni Hediye Ekleme Kartı -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
         <div>
           <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-800">
@@ -130,7 +130,6 @@
 
     </div>
 
-    <!-- Mevcut Stoklar Listesi -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col shadow-xl flex-1">
       <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
         <div class="flex items-center gap-2">
@@ -141,13 +140,12 @@
       </div>
 
       <div id="adminInventoryList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
-        <!-- JavaScript ile doldurulacak -->
       </div>
     </div>
 
   </main>
 
-  <!-- BİLDİRİM / ONAY MODALI -->
+  <!-- BİLDİRİM MODALI -->
   <div id="customModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl">
       <h3 id="customModalTitle" class="text-sm font-extrabold text-amber-400 mb-2 uppercase tracking-wider">BİLGİ</h3>
@@ -160,9 +158,6 @@
   </div>
 
   <script>
-    // ==========================================
-    // SUPABASE BAĞLANTI AYARLARI
-    // ==========================================
     const SUPABASE_URL = 'https://kfrlpvjpivkiojsowbzw.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmcmxwdmpwaXZraW9qc293Ynp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3ODc3NTAsImV4cCI6MjEwNzM2Mzc1MH0.UrycoXFp2oqRGhYZG1DbYv00qfIG8muFUNENMxjnFVM';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -341,7 +336,6 @@
       await saveSlotMappingToCloud();
     };
 
-    // Giriş Butonu
     document.getElementById('btnAdminLogin').addEventListener('click', async () => {
       const pin = document.getElementById('inputAdminPin').value;
       if (pin === adminPin) {
@@ -364,7 +358,6 @@
       }
     });
 
-    // Yeni İtem Ekleme
     document.getElementById('btnAddInventoryItem').addEventListener('click', async () => {
       const name = document.getElementById('inputNewItemName').value.trim();
       const qty = parseInt(document.getElementById('inputNewItemQty').value) || 10;
@@ -382,14 +375,12 @@
       }
     });
 
-    // Şimdi Karıştır
     document.getElementById('btnShuffleNow').addEventListener('click', async () => {
       slotMapping = generateSlotMappingInMemory();
       await saveSlotMappingToCloud();
       showNotification("Başarılı", "1000 slotluk çekiliş havuzu güncel stok ve oranlara göre yeniden karıştırıldı!");
     });
 
-    // Çekilişi Sıfırla
     document.getElementById('btnResetDraws').addEventListener('click', () => {
       showNotification("Onay", "Çekilen tüm numaralar sıfırlansın ve havuz baştan açılsın mı?", true, async (confirmed) => {
         if (confirmed) {
