@@ -330,10 +330,22 @@
     };
 
     window.removeInventoryItem = async function(idx) {
+      const removedItem = inventory[idx];
       inventory.splice(idx, 1);
       slotMapping = generateSlotMappingInMemory();
+
+      try {
+        // Supabase'den ilgili ürünü ID'sine göre tamamen sil
+        if (removedItem && removedItem.id) {
+          await supabaseClient.from('inventory').delete().eq('id', removedItem.id);
+        }
+      } catch (e) {
+        console.error("Supabase silme hatası:", e);
+      }
+
       await saveInventoryToCloud();
       await saveSlotMappingToCloud();
+      renderAdminInventory();
     };
 
     document.getElementById('btnAdminLogin').addEventListener('click', async () => {
