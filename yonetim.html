@@ -126,13 +126,19 @@
 
     </div>
 
+    <!-- HEDİYE STOKLARI VE ARAMA BÖLÜMÜ -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col shadow-xl flex-1">
-      <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 pb-3 border-b border-slate-800">
         <div class="flex items-center gap-2">
           <i data-lucide="box" class="w-4 h-4 text-amber-400"></i>
           <h3 class="text-xs font-extrabold text-slate-100 uppercase tracking-wider">Mevcut Hediye Stokları & Adet Bazlı Şans</h3>
         </div>
-        <span class="text-[11px] text-slate-400">Değişiklikler anlık olarak telefona yansır.</span>
+        
+        <!-- ARAMA ÇUBUĞU -->
+        <div class="relative min-w-[220px]">
+          <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+          <input type="text" id="inputSearchInventory" oninput="renderAdminInventory()" placeholder="Ürün ara..." class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-3 py-1.5 text-slate-100 placeholder-slate-500 text-xs font-medium focus:outline-none focus:border-amber-500 transition-all">
+        </div>
       </div>
 
       <div id="adminInventoryList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
@@ -302,31 +308,46 @@
 
     function renderAdminInventory() {
       const container = document.getElementById('adminInventoryList');
-      container.innerHTML = inventory.map((item, idx) => {
-        const qtyVal = item.qty !== undefined ? item.qty : 10;
-        
-        return `
-          <div class="p-3.5 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col justify-between shadow">
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-extrabold text-slate-100 text-xs truncate max-w-[180px]">${item.name}</span>
-              <button onclick="removeInventoryItem(${idx})" class="text-rose-400 hover:text-rose-300 p-1 transition-colors">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
-              </button>
-            </div>
-            
-            <div class="flex items-center justify-between bg-slate-900 px-3.5 py-2.5 rounded-xl border border-slate-800">
-              <div class="flex items-center gap-2">
-                <span class="text-slate-400 font-semibold text-xs">Stok Adedi:</span>
-                <input type="number" min="0" value="${qtyVal}" onchange="updateItemQty(${idx}, this.value)" class="w-16 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-center font-black text-amber-400 focus:outline-none focus:border-amber-500 text-xs">
-              </div>
-              <div class="text-right">
-                <span class="text-[10px] text-slate-400 block">Şans Faktörü</span>
-                <span class="text-xs font-black text-amber-300">${qtyVal} Puan</span>
-              </div>
-            </div>
+      const searchInput = document.getElementById('inputSearchInventory');
+      const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+      // Türkçe karakter uyumlu arama filtresi
+      const filteredInventory = inventory.map((item, originalIndex) => ({ item, originalIndex }))
+        .filter(({ item }) => item.name.toLowerCase().includes(query));
+
+      if (filteredInventory.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-8 text-center text-slate-500 text-xs font-semibold">
+            ${query ? 'Aramanızla eşleşen ürün bulunamadı.' : 'Henüz tanımlanmış hediye yok.'}
           </div>
         `;
-      }).join('');
+      } else {
+        container.innerHTML = filteredInventory.map(({ item, originalIndex }) => {
+          const qtyVal = item.qty !== undefined ? item.qty : 10;
+          
+          return `
+            <div class="p-3.5 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col justify-between shadow">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-extrabold text-slate-100 text-xs truncate max-w-[180px]">${item.name}</span>
+                <button onclick="removeInventoryItem(${originalIndex})" class="text-rose-400 hover:text-rose-300 p-1 transition-colors">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+              
+              <div class="flex items-center justify-between bg-slate-900 px-3.5 py-2.5 rounded-xl border border-slate-800">
+                <div class="flex items-center gap-2">
+                  <span class="text-slate-400 font-semibold text-xs">Stok Adedi:</span>
+                  <input type="number" min="0" value="${qtyVal}" onchange="updateItemQty(${originalIndex}, this.value)" class="w-16 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-center font-black text-amber-400 focus:outline-none focus:border-amber-500 text-xs">
+                </div>
+                <div class="text-right">
+                  <span class="text-[10px] text-slate-400 block">Şans Faktörü</span>
+                  <span class="text-xs font-black text-amber-300">${qtyVal} Puan</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
       
       document.getElementById('txtTotalTypes').textContent = `${inventory.length} Çeşit Hediye`;
       try { lucide.createIcons(); } catch (e) {}

@@ -58,18 +58,42 @@
     </div>
   </header>
 
-  <!-- LOGLAR LİSTESİ -->
+  <!-- LOGLAR LİSTESİ VE FİLTRE BÖLÜMÜ -->
   <main class="w-full max-w-4xl mx-auto flex flex-col flex-1 bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl overflow-hidden">
-    <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-800 flex-shrink-0">
+    
+    <!-- Üst Kontrol & Filtre Barları -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800 flex-shrink-0">
       <div class="flex items-center gap-2">
         <i data-lucide="list-ordered" class="w-4 h-4 text-amber-400"></i>
-        <h3 class="text-xs font-extrabold text-slate-100 uppercase tracking-wider">Son Çekilen Hediyeler ve Kazananlar</h3>
+        <h3 class="text-xs font-extrabold text-slate-100 uppercase tracking-wider">Son Çekilen Hediyeler</h3>
+        <span id="txtFilteredCount" class="text-[11px] bg-slate-800 text-amber-400 font-bold px-2.5 py-0.5 rounded-lg border border-slate-700 ml-1">
+          Seçili Gün: 0 Çekiliş
+        </span>
       </div>
-      <span class="text-[11px] text-slate-400">Telefon ekrandan çekiliş yaptıkça anında buraya düşer.</span>
+
+      <!-- Filtreler: Gün Seçimi ve Sıralama -->
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Tarih Filtresi -->
+        <div class="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2.5 py-1.5 rounded-xl">
+          <i data-lucide="calendar" class="w-3.5 h-3.5 text-amber-400"></i>
+          <select id="selectDateFilter" onchange="renderLogs()" class="bg-transparent text-slate-200 text-xs font-semibold focus:outline-none cursor-pointer">
+            <option value="all" class="bg-slate-900 text-slate-100">Tüm Günler</option>
+          </select>
+        </div>
+
+        <!-- Sıralama Yönü -->
+        <div class="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2.5 py-1.5 rounded-xl">
+          <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-amber-400"></i>
+          <select id="selectSortOrder" onchange="renderLogs()" class="bg-transparent text-slate-200 text-xs font-semibold focus:outline-none cursor-pointer">
+            <option value="desc" class="bg-slate-900 text-slate-100">En Yeni İlk</option>
+            <option value="asc" class="bg-slate-900 text-slate-100">En Eski İlk</option>
+          </select>
+        </div>
+      </div>
     </div>
 
+    <!-- Log Listesi -->
     <div id="logsContainer" class="overflow-y-auto space-y-2.5 pr-2 custom-scrollbar flex-1">
-      <!-- JavaScript ile doldurulacak -->
       <div class="text-center py-12 text-slate-500 text-xs">Loglar yükleniyor...</div>
     </div>
   </main>
@@ -90,28 +114,98 @@
 
         if (error) throw error;
         logsList = data || [];
+        
+        populateDateOptions();
         renderLogs();
       } catch (e) {
         document.getElementById('logsContainer').innerHTML = `<div class="text-center py-12 text-rose-400 text-xs font-bold">Loglar yüklenirken hata oluştu.</div>`;
       }
     }
 
+    // Veritabanındaki tarihlerden gün gün açılır liste (Select) oluştur
+    function populateDateOptions() {
+      const select = document.getElementById('selectDateFilter');
+      const currentValue = select.value;
+      
+      // Mevcut günleri benzersiz (YYYY-MM-DD) olarak topla
+      const uniqueDates = new Set();
+      logsList.forEach(log => {
+        if (log.drawn_at) {
+          const d = new Date(log.drawn_at);
+          if (!isNaN(d.getTime())) {
+            const dateStr = d.toISOString().split('T')[0];
+            uniqueDates.add(dateStr);
+          }
+        }
+      });
+
+      // Seçeneği sıfırla ama 'Tüm Günler'i koru
+      select.innerHTML = `<option value="all" class="bg-slate-900 text-slate-100">Tüm Günler</option>`;
+
+      // Tarihleri en yeniden en eskiye diz
+      Array.from(uniqueDates).sort().reverse().forEach(dateStr => {
+        const d = new Date(dateStr + 'T00:00:00');
+        const formattedDate = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+        
+        const opt = document.createElement('option');
+        opt.value = dateStr;
+        opt.className = 'bg-slate-900 text-slate-100';
+        opt.textContent = formattedDate;
+        select.appendChild(opt);
+      });
+
+      // Eski seçili değeri koru
+      if (Array.from(select.options).some(o => o.value === currentValue)) {
+        select.value = currentValue;
+      }
+    }
+
     function renderLogs() {
       const container = document.getElementById('logsContainer');
+      const dateFilter = document.getElementById('selectDateFilter').value;
+      const sortOrder = document.getElementById('selectSortOrder').value;
+
       document.getElementById('txtTotalWins').textContent = `Toplam: ${logsList.length} Kazanım`;
 
       if (logsList.length === 0) {
         container.innerHTML = `<div class="text-center py-12 text-slate-500 text-xs">Henüz hiç çekiliş yapılmamış. Telefon ekranından ilk çekilişi yapın!</div>`;
+        document.getElementById('txtFilteredCount').textContent = `Seçili Gün: 0 Çekiliş`;
         return;
       }
 
-      container.innerHTML = logsList.map((log, index) => {
+      // 1. Tarih Filtreleme
+      let filtered = logsList.filter(log => {
+        if (dateFilter === 'all') return true;
+        if (!log.drawn_at) return false;
+        const logDateStr = new Date(log.drawn_at).toISOString().split('T')[0];
+        return logDateStr === dateFilter;
+      });
+
+      // Günlük çekiliş sayısını güncelle
+      document.getElementById('txtFilteredCount').textContent = `${dateFilter === 'all' ? 'Tüm Zamanlar' : 'Seçili Gün'}: ${filtered.length} Çekiliş`;
+
+      // 2. Sıralama (En Yeni / En Eski)
+      filtered.sort((a, b) => {
+        const timeA = new Date(a.drawn_at || 0).getTime();
+        const timeB = new Date(b.drawn_at || 0).getTime();
+        return sortOrder === 'desc' ? timeB - timeA : timeA - timeB;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 text-slate-500 text-xs">Seçtiğiniz tarihte çekiliş yapılmamış.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map((log, index) => {
         const formattedNum = String(log.draw_number).padStart(3, '0');
         const dateObj = new Date(log.drawn_at);
-        const timeStr = !isNaN(dateObj.getTime()) ? dateObj.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Şimdi';
+        
+        const hasValidDate = !isNaN(dateObj.getTime());
+        const timeStr = hasValidDate ? dateObj.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Şimdi';
+        const dateStr = hasValidDate ? dateObj.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) : '';
 
         return `
-          <div class="p-3.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between shadow-sm ${index === 0 ? 'border-amber-500/50 bg-amber-500/5 animate-fade-in' : ''}">
+          <div class="p-3.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between shadow-sm ${index === 0 && sortOrder === 'desc' ? 'border-amber-500/50 bg-amber-500/5 animate-fade-in' : ''}">
             <div class="flex items-center gap-3">
               <div class="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center font-black text-amber-400 text-sm shadow">
                 #${formattedNum}
@@ -122,10 +216,11 @@
               </div>
             </div>
             
-            <div class="text-right">
-              <span class="text-[10px] bg-slate-900 text-slate-300 font-bold px-2.5 py-1 rounded-lg border border-slate-800">
+            <div class="text-right flex flex-col items-end gap-1">
+              <span class="text-[10px] bg-slate-900 text-amber-300 font-bold px-2.5 py-1 rounded-lg border border-slate-800">
                 🕒 ${timeStr}
               </span>
+              ${dateFilter === 'all' && dateStr ? `<span class="text-[9px] text-slate-500 font-semibold">${dateStr}</span>` : ''}
             </div>
           </div>
         `;
@@ -140,6 +235,7 @@
         .channel('public:drawn_numbers')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'drawn_numbers' }, payload => {
           logsList.unshift(payload.new); // Yeni gelen logu listenin başına ekle
+          populateDateOptions();
           renderLogs();
         })
         .subscribe();
