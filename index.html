@@ -169,6 +169,7 @@
     let drawnNumbers = [];
     let slotMapping = {};
     let isSpinning = false;
+    let isSyncing = false; // Sonsuz döngü önleme bayrağı
 
     function showNotification(title, message, onConfirm = null) {
       const modal = document.getElementById('customModal');
@@ -226,7 +227,7 @@
 
       let pool = [];
       availableItems.forEach(item => {
-        const weight = Math.max(1, parseInt(item.weight) || 1);
+        const weight = Math.max(1, parseInt(item.weight) || parseInt(item.qty) || 1);
         for (let w = 0; w < weight * 10; w++) {
           pool.push(item.name);
         }
@@ -240,6 +241,9 @@
     }
 
     async function loadAppData() {
+      if (isSyncing) return;
+      isSyncing = true;
+
       const statusEl = document.getElementById('txtConnectionStatus');
       try {
         let { data: invData, error: invErr } = await supabaseClient.from('inventory').select('*');
@@ -278,6 +282,8 @@
 
         const localMap = localStorage.getItem('suzener_offline_map');
         slotMapping = localMap ? JSON.parse(localMap) : generateSlotMappingInMemory();
+      } finally {
+        isSyncing = false;
       }
 
       updateRemainingStats();
@@ -317,11 +323,12 @@
       document.getElementById('txtConnectionStatus').className = "text-[9px] font-semibold text-amber-400";
     });
 
+    // Sadece yönetim panelinden gelen stok değişikliklerini dinle (Sonsuz kilitlenme engellendi)
     function setupRealtimeSync() {
       try {
         supabaseClient
-          .channel('public-db-changes')
-          .on('postgres_changes', { event: '*', schema: 'public' }, payload => {
+          .channel('public-inventory-changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, payload => {
             loadAppData();
           })
           .subscribe();
