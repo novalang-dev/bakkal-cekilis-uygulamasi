@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Süzener Market - Telegram Yönetim</title>
+  <title>Süzener Market - Telegram Yönetim & Loglar</title>
 
   <!-- Telegram Web App SDK & Supabase -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -18,9 +18,9 @@
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 p-4 min-h-full flex flex-col justify-center">
+<body class="bg-slate-950 text-slate-100 p-3 min-h-full flex flex-col justify-center">
 
-  <!-- YETKİSİZ ERİŞİM EKRANI (Varsayılan Olarak Gizli) -->
+  <!-- YETKİSİZ ERİŞİM EKRANI -->
   <div id="authErrorBox" class="hidden text-center bg-slate-900 border border-rose-500/30 p-6 rounded-3xl max-w-xs mx-auto shadow-2xl">
     <div class="w-12 h-12 bg-rose-500/10 text-rose-400 rounded-2xl flex items-center justify-center mx-auto mb-3 font-black text-xl">
       🚫
@@ -29,55 +29,98 @@
     <p class="text-xs text-slate-400 leading-relaxed">Bu yönetim panelini kullanma yetkiniz bulunmuyor.</p>
   </div>
 
-  <!-- ANA YÖNETİM PANELİ (Yetkili İse Görünür) -->
+  <!-- ANA YÖNETİM PANELİ -->
   <main id="mainPanel" class="hidden flex-col flex-1 min-h-full">
     
     <!-- Üst Bilgi Kartı -->
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 mb-4 flex items-center justify-between shadow-lg">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 mb-3 flex items-center justify-between shadow-lg">
       <div>
         <h1 class="text-xs font-black text-amber-400 uppercase tracking-wider">SÜZENER TELEGRAM PANELİ</h1>
         <p id="txtTgUser" class="text-[10px] font-semibold text-slate-400">Giriş Yapıldı</p>
       </div>
-      <span id="txtTotalTypes" class="text-[11px] bg-amber-500/10 text-amber-300 font-bold px-2.5 py-1 rounded-xl border border-amber-500/20">
+      <span id="txtHeaderStats" class="text-[11px] bg-amber-500/10 text-amber-300 font-bold px-2.5 py-1 rounded-xl border border-amber-500/20">
         0 Çeşit
       </span>
     </div>
 
-    <!-- İşlem Butonları -->
-    <div class="grid grid-cols-2 gap-2 mb-4">
-      <button id="btnTgShuffle" class="py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl font-black text-xs active:scale-95 transition-all flex items-center justify-center gap-1.5 shadow-md">
-        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Havuzu Karıştır
+    <!-- SEKMELER (TAB MENU) -->
+    <div class="flex bg-slate-900 border border-slate-800 p-1 rounded-xl mb-3 gap-1">
+      <button id="tabBtnStock" onclick="switchTab('stock')" class="flex-1 py-2 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 shadow transition-all flex items-center justify-center gap-1.5">
+        <i data-lucide="box" class="w-3.5 h-3.5"></i> Stok Yönetimi
       </button>
-      <button id="btnTgReset" class="py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-300 rounded-xl font-black text-xs active:scale-95 transition-all flex items-center justify-center gap-1.5">
-        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Çekilişi Sıfırla
+      <button id="tabBtnLogs" onclick="switchTab('logs')" class="flex-1 py-2 rounded-lg text-xs font-extrabold text-slate-400 hover:text-slate-200 transition-all flex items-center justify-center gap-1.5">
+        <i data-lucide="history" class="w-3.5 h-3.5"></i> Çekiliş Logları
       </button>
     </div>
 
-    <!-- Arama Kutusu -->
-    <div class="relative mb-3">
-      <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-      <input type="text" id="inputTgSearch" oninput="renderTgInventory()" placeholder="Telegram'da ürün ara..." class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-8 pr-3 py-2 text-slate-100 placeholder-slate-500 text-xs font-medium focus:outline-none focus:border-amber-500">
-    </div>
-
-    <!-- Stok Listesi -->
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 shadow-xl flex-1 flex flex-col">
-      <div class="flex items-center justify-between mb-2.5 pb-2 border-b border-slate-800">
-        <span class="text-[11px] font-extrabold text-slate-300 uppercase tracking-wider">Hızlı Stok Güncelleme</span>
-        <span id="txtSyncStatus" class="text-[9px] text-emerald-400 font-semibold">Senkronize</span>
+    <!-- ==================== TAB 1: STOK YÖNETİMİ ==================== -->
+    <div id="tabStockContent" class="flex-1 flex flex-col">
+      <!-- İşlem Butonları -->
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <button id="btnTgShuffle" class="py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl font-black text-xs active:scale-95 transition-all flex items-center justify-center gap-1.5 shadow-md">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Havuzu Karıştır
+        </button>
+        <button id="btnTgReset" class="py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-300 rounded-xl font-black text-xs active:scale-95 transition-all flex items-center justify-center gap-1.5">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Çekilişi Sıfırla
+        </button>
       </div>
 
-      <div id="tgInventoryList" class="space-y-2 overflow-y-auto max-h-[380px] pr-1 custom-scrollbar flex-1">
-        <div class="text-center py-8 text-slate-500 text-xs">Stoklar yükleniyor...</div>
+      <!-- Arama Kutusu -->
+      <div class="relative mb-3">
+        <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+        <input type="text" id="inputTgSearch" oninput="renderTgInventory()" placeholder="Telegram'da ürün ara..." class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-8 pr-3 py-2 text-slate-100 placeholder-slate-500 text-xs font-medium focus:outline-none focus:border-amber-500">
+      </div>
+
+      <!-- Stok Listesi -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-xl flex-1 flex flex-col">
+        <div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-800">
+          <span class="text-[11px] font-extrabold text-slate-300 uppercase tracking-wider">Hızlı Stok Güncelleme</span>
+          <span id="txtSyncStatus" class="text-[9px] text-emerald-400 font-semibold">Senkronize</span>
+        </div>
+
+        <div id="tgInventoryList" class="space-y-2 overflow-y-auto max-h-[360px] pr-1 custom-scrollbar flex-1">
+          <div class="text-center py-8 text-slate-500 text-xs">Stoklar yükleniyor...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 2: CANLI LOGLAR ==================== -->
+    <div id="tabLogsContent" class="hidden flex-1 flex-col">
+      <!-- Log Filtreleme Barları -->
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <div class="flex-1 flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-2.5 py-1.5 rounded-xl">
+          <i data-lucide="calendar" class="w-3.5 h-3.5 text-amber-400"></i>
+          <select id="selectTgDateFilter" onchange="renderTgLogs()" class="bg-transparent text-slate-200 text-xs font-semibold focus:outline-none w-full cursor-pointer">
+            <option value="all" class="bg-slate-900 text-slate-100">Tüm Günler</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-2.5 py-1.5 rounded-xl">
+          <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-amber-400"></i>
+          <select id="selectTgSortOrder" onchange="renderTgLogs()" class="bg-transparent text-slate-200 text-xs font-semibold focus:outline-none cursor-pointer">
+            <option value="desc" class="bg-slate-900 text-slate-100">En Yeni</option>
+            <option value="asc" class="bg-slate-900 text-slate-100">En Eski</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Log Listesi Container -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-xl flex-1 flex flex-col">
+        <div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-800">
+          <span class="text-[11px] font-extrabold text-slate-300 uppercase tracking-wider">Son Çekilenler</span>
+          <span id="txtTgLogCount" class="text-[10px] text-amber-400 font-extrabold">0 Kazanım</span>
+        </div>
+
+        <div id="tgLogsContainer" class="space-y-2 overflow-y-auto max-h-[380px] pr-1 custom-scrollbar flex-1">
+          <div class="text-center py-8 text-slate-500 text-xs">Loglar yükleniyor...</div>
+        </div>
       </div>
     </div>
 
   </main>
 
   <script>
-    // =========================================================
-    // İZİN VERİLEN TELEGRAM ID'LERİ
-    // İleride 2. kişi için virgül koyup ekleyebilirsin: [6595229085, 9876543210]
-    // =========================================================
+    // Yetkili Telegram ID'leri
     const ALLOWED_TELEGRAM_IDS = [6595229085]; 
 
     const SUPABASE_URL = 'https://kfrlpvjpivkiojsowbzw.supabase.co'; 
@@ -86,6 +129,8 @@
 
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     let inventory = [];
+    let logsList = [];
+    let activeTab = 'stock';
 
     function checkUserAuth() {
       if (tg) {
@@ -95,7 +140,6 @@
 
       const currentUser = tg?.initDataUnsafe?.user;
       
-      // Test amaçlı doğrudan tarayıcıdan açılırsa veya Telegram ID'si listedeyse izin ver
       if (!currentUser || ALLOWED_TELEGRAM_IDS.includes(currentUser.id)) {
         document.getElementById('mainPanel').classList.remove('hidden');
         document.getElementById('mainPanel').classList.add('flex');
@@ -109,6 +153,34 @@
       }
     }
 
+    function switchTab(tab) {
+      activeTab = tab;
+      const stockBtn = document.getElementById('tabBtnStock');
+      const logsBtn = document.getElementById('tabBtnLogs');
+      const stockContent = document.getElementById('tabStockContent');
+      const logsContent = document.getElementById('tabLogsContent');
+
+      if (tab === 'stock') {
+        stockBtn.className = "flex-1 py-2 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 shadow transition-all flex items-center justify-center gap-1.5";
+        logsBtn.className = "flex-1 py-2 rounded-lg text-xs font-extrabold text-slate-400 hover:text-slate-200 transition-all flex items-center justify-center gap-1.5";
+        stockContent.classList.remove('hidden');
+        stockContent.classList.add('flex');
+        logsContent.classList.add('hidden');
+        logsContent.classList.remove('flex');
+        document.getElementById('txtHeaderStats').textContent = `${inventory.length} Çeşit`;
+      } else {
+        logsBtn.className = "flex-1 py-2 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 shadow transition-all flex items-center justify-center gap-1.5";
+        stockBtn.className = "flex-1 py-2 rounded-lg text-xs font-extrabold text-slate-400 hover:text-slate-200 transition-all flex items-center justify-center gap-1.5";
+        logsContent.classList.remove('hidden');
+        logsContent.classList.add('flex');
+        stockContent.classList.add('hidden');
+        stockContent.classList.remove('flex');
+        loadTgLogs();
+      }
+      try { lucide.createIcons(); } catch(e) {}
+    }
+
+    // --- STOK METOTLARI ---
     async function loadTgData() {
       try {
         let { data, error } = await supabaseClient.from('inventory').select('*');
@@ -128,7 +200,9 @@
       const filtered = inventory.map((item, originalIndex) => ({ item, originalIndex }))
         .filter(({ item }) => item.name.toLowerCase().includes(query));
 
-      document.getElementById('txtTotalTypes').textContent = `${inventory.length} Çeşit`;
+      if (activeTab === 'stock') {
+        document.getElementById('txtHeaderStats').textContent = `${inventory.length} Çeşit`;
+      }
 
       if (filtered.length === 0) {
         container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">Ürün bulunamadı.</div>`;
@@ -168,6 +242,113 @@
       } catch(e) {}
     };
 
+    // --- LOG METOTLARI ---
+    async function loadTgLogs() {
+      try {
+        let { data, error } = await supabaseClient
+          .from('drawn_numbers')
+          .select('*')
+          .order('drawn_at', { ascending: false });
+
+        if (error) throw error;
+        logsList = data || [];
+        populateTgDateOptions();
+        renderTgLogs();
+      } catch (e) {
+        document.getElementById('tgLogsContainer').innerHTML = `<div class="text-center py-8 text-rose-400 text-xs font-bold">Loglar yüklenemedi.</div>`;
+      }
+    }
+
+    function populateTgDateOptions() {
+      const select = document.getElementById('selectTgDateFilter');
+      const currentValue = select.value;
+      const uniqueDates = new Set();
+
+      logsList.forEach(log => {
+        if (log.drawn_at) {
+          const d = new Date(log.drawn_at);
+          if (!isNaN(d.getTime())) {
+            uniqueDates.add(d.toISOString().split('T')[0]);
+          }
+        }
+      });
+
+      select.innerHTML = `<option value="all" class="bg-slate-900 text-slate-100">Tüm Günler</option>`;
+      Array.from(uniqueDates).sort().reverse().forEach(dateStr => {
+        const d = new Date(dateStr + 'T00:00:00');
+        const formattedDate = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+        const opt = document.createElement('option');
+        opt.value = dateStr;
+        opt.className = 'bg-slate-900 text-slate-100';
+        opt.textContent = formattedDate;
+        select.appendChild(opt);
+      });
+
+      if (Array.from(select.options).some(o => o.value === currentValue)) {
+        select.value = currentValue;
+      }
+    }
+
+    function renderTgLogs() {
+      const container = document.getElementById('tgLogsContainer');
+      const dateFilter = document.getElementById('selectTgDateFilter').value;
+      const sortOrder = document.getElementById('selectTgSortOrder').value;
+
+      let filtered = logsList.filter(log => {
+        if (dateFilter === 'all') return true;
+        if (!log.drawn_at) return false;
+        return new Date(log.drawn_at).toISOString().split('T')[0] === dateFilter;
+      });
+
+      document.getElementById('txtTgLogCount').textContent = `${filtered.length} Çekiliş`;
+      if (activeTab === 'logs') {
+        document.getElementById('txtHeaderStats').textContent = `Toplam: ${filtered.length}`;
+      }
+
+      filtered.sort((a, b) => {
+        const timeA = new Date(a.drawn_at || 0).getTime();
+        const timeB = new Date(b.drawn_at || 0).getTime();
+        return sortOrder === 'desc' ? timeB - timeA : timeA - timeB;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">Bu tarihte çekiliş yok.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map((log) => {
+        const formattedNum = String(log.draw_number).padStart(3, '0');
+        const dateObj = new Date(log.drawn_at);
+        const hasValidDate = !isNaN(dateObj.getTime());
+        const timeStr = hasValidDate ? dateObj.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : 'Şimdi';
+        const dateStr = hasValidDate ? dateObj.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) : '';
+
+        return `
+          <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center font-black text-amber-400 text-xs shadow">
+                #${formattedNum}
+              </div>
+              <div class="max-w-[140px] truncate">
+                <p class="text-[9px] font-bold text-slate-400 uppercase">Kazanılan Hediye</p>
+                <h4 class="text-xs font-extrabold text-slate-100 truncate">${log.prize_name}</h4>
+              </div>
+            </div>
+            
+            <div class="text-right flex flex-col items-end">
+              <span class="text-[10px] bg-slate-900 text-amber-300 font-bold px-2 py-0.5 rounded-md border border-slate-800">
+                🕒 ${timeStr}
+              </span>
+              ${dateFilter === 'all' && dateStr ? `<span class="text-[8px] text-slate-500 font-semibold mt-0.5">${dateStr}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      try { lucide.createIcons(); } catch(e) {}
+    }
+
+    // --- BUTON EVENTLERİ ---
     document.getElementById('btnTgShuffle').addEventListener('click', async () => {
       if (tg && tg.showConfirm) {
         tg.showConfirm("Çekiliş havuzu güncel stoklara göre yeniden karıştırılsın mı?", async (ok) => {
@@ -182,7 +363,7 @@
       const confirmAction = () => {
         return new Promise((resolve) => {
           if (tg && tg.showConfirm) {
-            tg.showConfirm("Çekilen tüm numaralar sıfırlansın ve havuz temizlensin mi?", (ok) => resolve(ok));
+            tg.showConfirm("Çekilen tüm numaralar sıfırlansın mı?", (ok) => resolve(ok));
           } else {
             resolve(confirm("Çekilen tüm numaralar sıfırlansın mı?"));
           }
@@ -195,6 +376,7 @@
           await supabaseClient.from('drawn_numbers').delete().neq('draw_number', 0);
           await shufflePool();
           if (tg) tg.showAlert("Çekiliş geçmişi ve havuz başarıyla sıfırlandı!");
+          if (activeTab === 'logs') loadTgLogs();
         } catch (e) {}
       }
     });
@@ -217,9 +399,22 @@
       if (tg) tg.showAlert("1000 slotluk havuz Telegram'dan başarıyla karıştırıldı!");
     }
 
+    // Realtime Dinleyici (Telefon Çekiliş Yaptıkça Telegram Logu Otomatik Güncellenir)
+    function setupRealtimeLogs() {
+      supabaseClient
+        .channel('public:drawn_numbers_tg')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'drawn_numbers' }, payload => {
+          logsList.unshift(payload.new);
+          populateTgDateOptions();
+          if (activeTab === 'logs') renderTgLogs();
+        })
+        .subscribe();
+    }
+
     window.onload = async function() {
       if (checkUserAuth()) {
         await loadTgData();
+        setupRealtimeLogs();
       }
       try { lucide.createIcons(); } catch(e) {}
     };
