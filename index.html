@@ -1,30 +1,26 @@
 <!DOCTYPE html>
-<html lang="tr" class="h-full bg-slate-950 overflow-hidden fixed inset-0">
+<html lang="tr" class="h-full bg-blue-50 overflow-hidden fixed inset-0">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Süzener Market - Resmî Çekiliş Sistemi v13</title>
+  <title>Süzener Market - Çekiliş</title>
   <link rel="manifest" href="./manifest.json">
 
-  <!-- PWA & Mobile Web App Meta Tags -->
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#1e3a8a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Süzener Market">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23f59e0b'/><text x='50' y='68' font-size='55' text-anchor='middle'>🎁</text></svg>">
   
-  <link rel="manifest" id="manifestPlaceholder">
-
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;800;900&display=swap" rel="stylesheet">
   
   <style>
     body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Inter', sans-serif;
       touch-action: manipulation;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
@@ -33,130 +29,246 @@
       width: 100%;
       height: 100%;
       inset: 0;
+      background-color: #eff6ff;
+      background-image: radial-gradient(#bfdbfe 1px, transparent 1px);
+      background-size: 20px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
-    /* Glass Fanus styling */
-    .fanus-bowl {
-      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15), rgba(15, 23, 42, 0.9));
-      box-shadow: inset 0 0 35px rgba(255, 255, 255, 0.12), 0 15px 35px rgba(0, 0, 0, 0.8), 0 0 25px rgba(245, 158, 11, 0.25);
-      border: 3px solid rgba(255, 255, 255, 0.28);
+
+    /* YATAY EKRAN (LANDSCAPE) İÇİN ÖZEL AYARLAR */
+    @media (orientation: landscape) {
+      body {
+        flex-direction: row;
+        padding: 10px;
+      }
+      #drawContent {
+        flex-direction: row !important;
+        max-width: 100% !important;
+        gap: 2rem !important;
+      }
+      .fanus-wrapper {
+        width: 220px !important;
+        height: 220px !important;
+        margin: 0 !important;
+      }
+      .info-panel {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        max-width: 300px;
+      }
     }
-    /* Ball float animation inside fanus */
+
+    .real-fanus {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 100%);
+      border: 4px solid rgba(255, 255, 255, 0.6);
+      border-top: 4px solid rgba(255, 255, 255, 0.9);
+      border-bottom: 4px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 
+        inset 0 0 20px rgba(255, 255, 255, 0.5),
+        inset 0 -10px 20px rgba(30, 58, 138, 0.2),
+        0 10px 25px -5px rgba(30, 58, 138, 0.3);
+    }
+
+    .glass-reflection {
+      background: linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%);
+      border-radius: 50%;
+    }
+
     @keyframes floatBall {
-      0% { transform: translate(0, 0) rotate(0deg); }
-      50% { transform: translate(10px, -12px) rotate(180deg); }
-      100% { transform: translate(0, 0) rotate(360deg); }
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(5px, -10px) scale(1.02); }
+      66% { transform: translate(-5px, -5px) scale(0.98); }
     }
     .floating-ball {
-      animation: floatBall 3.2s infinite ease-in-out;
+      animation: floatBall 3.5s infinite ease-in-out;
+      box-shadow: inset -3px -3px 6px rgba(0,0,0,0.3), inset 2px 2px 5px rgba(255,255,255,0.6);
     }
-    /* Ball pop out and zoom animation */
+
     @keyframes ballPopup {
-      0% { transform: scale(0.2) translateY(50px); opacity: 0; }
-      60% { transform: scale(1.15) translateY(-8px); opacity: 1; }
+      0% { transform: scale(0.5) translateY(50px); opacity: 0; }
+      70% { transform: scale(1.05) translateY(-10px); opacity: 1; }
       100% { transform: scale(1) translateY(0); opacity: 1; }
     }
     .animate-ball-pop {
-      animation: ballPopup 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      animation: ballPopup 0.6s ease-out forwards;
     }
-    /* Paper unfold animation */
-    @keyframes paperUnfold {
-      0% { transform: scaleY(0.1) scaleX(0.1); opacity: 0; }
-      50% { transform: scaleY(1.08) scaleX(0.5); opacity: 1; }
-      100% { transform: scaleY(1) scaleX(1); opacity: 1; }
+
+    @keyframes ticketReveal {
+      0% { transform: scale(0.9) translateY(20px); opacity: 0; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
     }
-    .animate-paper-unfold {
-      animation: paperUnfold 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    .animate-ticket-reveal {
+      animation: ticketReveal 0.4s ease-out forwards;
     }
+
+    .draw-btn {
+      background: linear-gradient(180deg, #2563eb 0%, #1e40af 100%);
+      border: 2px solid #60a5fa;
+      box-shadow: 0 4px 0 #172554, 0 8px 15px rgba(0,0,0,0.2);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .draw-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 0 0 #172554, 0 4px 10px rgba(0,0,0,0.2);
+    }
+    
+    .locked-fanus {
+      filter: grayscale(40%);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .ticket-divider {
+      border-top: 2px dashed #94a3b8;
+      position: relative;
+    }
+    .ticket-divider::before, .ticket-divider::after {
+      content: '';
+      position: absolute;
+      top: -12px;
+      width: 24px;
+      height: 24px;
+      background-color: #eff6ff; 
+      border-radius: 50%;
+    }
+    .ticket-divider::before { left: -14px; }
+    .ticket-divider::after { right: -14px; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-3 overflow-hidden selection:bg-amber-500 selection:text-slate-950">
+<body class="text-slate-800">
 
-  <main id="drawContent" class="w-full max-w-md mx-auto flex flex-col items-center justify-center gap-3 my-auto">
+  <main id="drawContent" class="w-full max-w-md mx-auto flex flex-col items-center justify-center gap-4">
     
-    <!-- Marka Başlığı -->
-    <div class="text-center mb-1">
-      <h1 class="text-sm font-black tracking-wider text-amber-400">SÜZENER MARKET</h1>
-      <p id="txtConnectionStatus" class="text-[9px] font-semibold text-slate-400">Bulut Bağlı (Hibrit Mod)</p>
+    <!-- Sol Taraf (Yatayda) / Üst Taraf (Dikeyde) -->
+    <div class="info-panel text-center mb-1 flex flex-col items-center">
+      <h1 class="text-xl font-black tracking-widest text-blue-900">SÜZENER MARKET</h1>
+      <div class="flex items-center justify-center gap-1.5 mt-1 mb-3 bg-white/50 px-3 py-1 rounded-full border border-blue-200">
+        <span id="connectionDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <p id="txtConnectionStatus" class="text-[10px] font-semibold text-slate-600">Sisteme Bağlanılıyor...</p>
+      </div>
+      
+      <!-- Masaüstü/Yatay Görünümde Bilgi Kutusu -->
+      <div class="hidden landscape:flex flex-col gap-2 w-full mt-2">
+        <div class="text-[10px] font-extrabold uppercase tracking-wider text-white bg-red-800 px-3 py-1 rounded-md shadow-sm text-center">
+          AKTİF SİSTEM v1.2
+        </div>
+        <div id="txtRemainingStatsLandscape" class="text-[11px] font-bold text-white bg-red-800 px-3 py-1 rounded-md shadow-sm text-center">
+          Kalan Hediye: 0
+        </div>
+      </div>
     </div>
 
-    <!-- Fanus & Draw Card -->
-    <div class="w-full bg-slate-900/90 border-2 border-amber-500/40 rounded-3xl p-4 sm:p-5 shadow-2xl relative flex flex-col items-center justify-center">
+    <!-- Ana Kart (Fanus) -->
+    <div class="w-full bg-white border-2 border-blue-100 rounded-3xl p-4 sm:p-5 shadow-xl relative flex flex-col items-center">
       
-      <!-- Top Status Info -->
-      <div class="w-full flex items-center justify-between mb-2 px-1">
-        <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> AKTİF SİSTEM
+      <!-- Üst Bilgi (Sadece Dikey Görünümde) -->
+      <div class="w-full flex landscape:hidden items-center justify-between mb-3">
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-white bg-red-800 px-2.5 py-1 rounded-md shadow-sm">
+          AKTİF SİSTEM <span class="opacity-75">v1.2</span>
         </span>
-        <span id="txtRemainingStats" class="text-[10px] font-bold text-slate-300 bg-slate-950 px-2.5 py-0.5 rounded-full border border-slate-800">
+        <span id="txtRemainingStats" class="text-[11px] font-bold text-white bg-red-800 px-3 py-1 rounded-md border border-red-900 shadow-sm">
           Kalan Hediye: 0
         </span>
       </div>
 
-      <!-- Büyütülmüş Tıklanabilir Cam Fanus Container -->
-      <div id="fanusContainer" class="fanus-bowl w-56 h-56 sm:w-64 sm:h-64 rounded-full relative overflow-hidden flex items-center justify-center my-3 cursor-pointer hover:scale-[1.02] active:scale-95 transition-all shadow-2xl group">
-        <div class="absolute top-3 left-6 w-16 h-8 bg-white/10 rounded-full blur-md transform -rotate-45 pointer-events-none z-20"></div>
+      <!-- GERÇEKÇİ VE HAFİF FANUS -->
+      <div id="fanusContainer" class="fanus-wrapper real-fanus relative w-64 h-64 sm:w-72 sm:h-72 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 active:scale-[0.98] my-2 overflow-hidden">
+        
+        <div class="glass-reflection absolute top-2 left-4 w-28 h-14 pointer-events-none z-20 transform -rotate-12"></div>
 
-        <div class="absolute inset-2 flex flex-wrap items-center justify-center gap-1.5 p-3 overflow-hidden pointer-events-none opacity-95">
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-amber-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-rose-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.6s;"></div>
-          <div class="w-4.5 h-4.5 sm:w-6 sm:h-6 rounded-full bg-emerald-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.2s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-sky-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.3s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-purple-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.5s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-amber-300 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.9s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-indigo-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.8s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-teal-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.4s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-pink-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.1s;"></div>
-          <div class="w-4.5 h-4.5 sm:w-6 sm:h-6 rounded-full bg-orange-500 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.7s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-cyan-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 1.6s;"></div>
-          <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-lime-400 shadow-lg floating-ball border border-white/40" style="animation-delay: 0.2s;"></div>
+        <div class="absolute inset-4 flex flex-wrap items-center justify-center gap-3 sm:gap-4 p-2 overflow-hidden pointer-events-none opacity-95">
+          <div class="w-7 h-7 rounded-full bg-red-500 floating-ball" style="animation-delay: 0s;"></div>
+          <div class="w-6 h-6 rounded-full bg-amber-400 floating-ball" style="animation-delay: 0.5s;"></div>
+          <div class="w-8 h-8 rounded-full bg-emerald-500 floating-ball" style="animation-delay: 1s;"></div>
+          <div class="w-6 h-6 rounded-full bg-blue-500 floating-ball" style="animation-delay: 1.5s;"></div>
+          <div class="w-7 h-7 rounded-full bg-purple-500 floating-ball" style="animation-delay: 0.2s;"></div>
+          <div class="w-6 h-6 rounded-full bg-pink-500 floating-ball" style="animation-delay: 0.8s;"></div>
+          <div class="w-7 h-7 rounded-full bg-indigo-500 floating-ball" style="animation-delay: 1.2s;"></div>
+          <div class="w-6 h-6 rounded-full bg-teal-400 floating-ball" style="animation-delay: 0.4s;"></div>
+          <div class="w-7 h-7 rounded-full bg-orange-500 floating-ball" style="animation-delay: 1.8s;"></div>
+          <div class="w-6 h-6 rounded-full bg-cyan-400 floating-ball" style="animation-delay: 0.6s;"></div>
+          <div class="w-7 h-7 rounded-full bg-lime-500 floating-ball" style="animation-delay: 1.4s;"></div>
+          <div class="w-6 h-6 rounded-full bg-rose-400 floating-ball" style="animation-delay: 1.1s;"></div>
         </div>
 
-        <div class="absolute z-10 text-center bg-slate-950/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-amber-500/50 shadow-xl group-hover:border-amber-400 transition-colors">
-          <p class="text-xs font-black text-amber-400 tracking-wide">ÇEKMEK İÇİN DOKUN!</p>
-          <p class="text-[10px] font-bold text-slate-300">10 TL At & Fanusa Bas</p>
+        <!-- Buton Kısmı -->
+        <div class="absolute z-30 flex flex-col items-center justify-center">
+          <div id="drawBtnUI" class="draw-btn px-6 py-3 rounded-2xl flex flex-col items-center">
+            <i id="drawBtnIcon" data-lucide="unlock" class="w-5 h-5 text-white mb-1"></i>
+            <p id="drawBtnText" class="text-[12px] font-black text-white tracking-wide">ÇEKMEK İÇİN DOKUN</p>
+          </div>
         </div>
+
       </div>
 
     </div>
 
   </main>
 
-  <!-- KAZANÇ / SONUÇ MODALI -->
-  <div id="modalResult" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-    <div id="animationStage" class="relative flex flex-col items-center justify-center w-full max-w-sm">
+  <!-- REHBER POPUP -->
+  <div id="guidePopup" class="fixed inset-0 bg-blue-900/80 z-[60] flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full text-center shadow-2xl animate-ticket-reveal border-4 border-blue-500 cursor-pointer" onclick="closeGuide()">
       
-      <div id="animBall" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-amber-600 via-amber-400 to-amber-200 border-4 border-white flex items-center justify-center shadow-2xl shadow-amber-500/50 text-slate-950 font-black text-3xl sm:text-4xl animate-ball-pop transition-all mb-4">
-        🎯
+      <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-blue-200">
+        <i data-lucide="pointer" class="w-10 h-10 text-blue-600"></i>
       </div>
 
-      <div id="animPaper" class="bg-amber-50 text-slate-950 border-4 border-amber-600 rounded-3xl p-6 sm:p-7 w-full text-center shadow-2xl relative animate-paper-unfold hidden">
-        <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-600 text-white text-[10px] font-extrabold px-3.5 py-1 rounded-full uppercase tracking-widest shadow">
-          RESMÎ ÇEKİLİŞ KARTI
+      <h2 class="text-xl font-black text-blue-900 mb-2">Nasıl Çekilir?</h2>
+      <p class="text-sm text-slate-600 mb-4 leading-relaxed">
+        1. Fanusun ortasındaki mavi <strong>"ÇEKMEK İÇİN DOKUN"</strong> butonuna bas.<br>
+        2. Kazandığın numara ve hediyen ekrana gelecek.<br>
+        3. <strong>"HEDİYEYİ TESLİM ET"</strong> butonuna basarak kasadan hediyeni al.
+      </p>
+      <p class="text-xs font-bold text-amber-600 bg-amber-50 py-2 rounded-lg border border-amber-200">
+        Ekrana dokunarak bu pencereyi kapatabilirsin.
+      </p>
+    </div>
+  </div>
+
+  <!-- KAZANÇ / SONUÇ MODALI -->
+  <div id="modalResult" class="fixed inset-0 bg-blue-900/40 z-50 flex items-center justify-center p-4 hidden">
+    <div id="animationStage" class="relative flex flex-col items-center justify-center w-full max-w-sm">
+      
+      <div id="animBall" class="w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-blue-500 border-4 border-blue-300 shadow-[0_0_30px_rgba(59,130,246,0.6)] flex items-center justify-center text-white font-black text-5xl animate-ball-pop transition-all mb-4 relative z-20">
+      </div>
+
+      <div id="animPaper" class="w-full relative z-10 animate-ticket-reveal hidden bg-white rounded-2xl overflow-hidden shadow-2xl border border-slate-200">
+        
+        <div class="bg-red-800 p-5 text-center">
+          <p class="text-[10px] font-black text-red-200 uppercase tracking-widest mb-1">RESMÎ ÇEKİLİŞ KARTI</p>
+          <p class="text-xs font-bold text-red-100 uppercase tracking-wider">ÇEKİLEN NUMARA</p>
+          <h2 id="txtWinnerNumber" class="text-5xl font-black text-white tracking-tight my-1">000</h2>
         </div>
-        <div class="mt-2 mb-3">
-          <p class="text-[10px] font-bold text-amber-800 uppercase tracking-wider">ÇEKİLEN NUMARA</p>
-          <h2 id="txtWinnerNumber" class="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight my-1">#000</h2>
+        
+        <div class="p-6 text-center bg-slate-50 relative">
+          <div class="ticket-divider absolute top-0 left-0 w-full"></div>
+          
+          <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 mt-2">KAZANDIĞIN HEDİYE</p>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-3 mb-5">
+            <p id="txtWinnerPrize" class="text-xl font-black text-red-900 leading-tight">Meyve Suyu</p>
+          </div>
+          
+          <button id="btnCloseModal" class="relative overflow-hidden w-full py-3 bg-red-800 hover:bg-red-900 text-white font-extrabold text-sm rounded-xl transition-colors shadow-md flex items-center justify-center gap-2">
+            <div id="autoFillBar" class="absolute left-0 top-0 h-full bg-red-950/40 w-0 transition-all duration-[2000ms] ease-linear z-0"></div>
+            <i data-lucide="check-circle" class="w-5 h-5 text-red-200 relative z-10"></i>
+            <span class="relative z-10">HEDİYEYİ TESLİM ET</span>
+          </button>
         </div>
-        <div class="bg-amber-100/90 border border-amber-300 rounded-2xl p-4 my-3">
-          <p class="text-[10px] font-bold text-amber-900 mb-1">KAZANDIĞIN HEDİYE:</p>
-          <p id="txtWinnerPrize" class="text-lg sm:text-xl font-black text-amber-950 leading-snug">Meyve Suyu</p>
-        </div>
-        <button id="btnCloseModal" class="w-full py-3 bg-slate-950 hover:bg-slate-900 text-amber-400 font-extrabold text-sm rounded-xl transition-all shadow-lg flex items-center justify-center gap-2">
-          <i data-lucide="check-circle" class="w-4 h-4"></i>
-          <span>HEDİYEYİ TESLİM ET</span>
-        </button>
       </div>
 
     </div>
   </div>
 
-  <div id="customModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 max-w-xs w-full text-center shadow-2xl">
-      <h3 id="customModalTitle" class="text-xs font-bold text-amber-400 mb-1.5 uppercase tracking-wider">BİLGİ</h3>
-      <p id="customModalMessage" class="text-xs text-slate-200 mb-3 leading-relaxed">Mesaj metni buraya gelecek.</p>
-      <div id="customModalButtons" class="flex gap-2">
-        <button id="customModalOk" class="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-md">Tamam</button>
-      </div>
+  <!-- Özel Bildirim Modalı -->
+  <div id="customModal" class="fixed inset-0 bg-blue-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-blue-100 rounded-2xl p-5 max-w-sm w-full text-center shadow-2xl animate-ticket-reveal">
+      <h3 id="customModalTitle" class="text-sm font-bold text-red-800 mb-2 uppercase tracking-wider">BİLGİ</h3>
+      <p id="customModalMessage" class="text-xs text-slate-600 mb-5 leading-relaxed">Mesaj metni buraya gelecek.</p>
+      <button id="customModalOk" class="w-full py-2.5 bg-red-800 hover:bg-red-900 text-white font-extrabold text-sm rounded-xl shadow transition-colors">Tamam</button>
     </div>
   </div>
 
@@ -169,22 +281,26 @@
     let drawnNumbers = [];
     let slotMapping = {};
     let isSpinning = false;
-    let isSyncing = false; // Sonsuz döngü önleme bayrağı
+    let isSyncing = false;
+    let isCooldown = false; 
+    
+    let autoCloseTimeout = null; 
+    let cooldownTimeout = null;
+    
+    // Popup Döngü Zamanlayıcıları
+    let idleGuideTimeout = null; 
+    let guideAutoCloseTimeout = null;
+    let isGuideOpen = false;
 
     function showNotification(title, message, onConfirm = null) {
       const modal = document.getElementById('customModal');
-      const titleEl = document.getElementById('customModalTitle');
-      const msgEl = document.getElementById('customModalMessage');
-      const okBtn = document.getElementById('customModalOk');
-
-      titleEl.textContent = title;
-      msgEl.textContent = message;
-
-      okBtn.onclick = () => {
+      document.getElementById('customModalTitle').textContent = title;
+      document.getElementById('customModalMessage').textContent = message;
+      
+      document.getElementById('customModalOk').onclick = () => {
         modal.classList.add('hidden');
         if (onConfirm) onConfirm(true);
       };
-
       modal.classList.remove('hidden');
     }
 
@@ -193,8 +309,9 @@
     }
 
     function updateRemainingStats() {
-      const totalStock = getTotalStock();
-      document.getElementById('txtRemainingStats').textContent = `Kalan Hediye: ${totalStock}`;
+      const stat = `Kalan Hediye: ${getTotalStock()}`;
+      document.getElementById('txtRemainingStats').textContent = stat;
+      document.getElementById('txtRemainingStatsLandscape').textContent = stat;
     }
 
     let audioCtx = null;
@@ -202,7 +319,6 @@
       try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
-
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
@@ -210,32 +326,25 @@
         gain.gain.value = 0.08;
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-        const startTime = audioCtx.currentTime;
-        osc.start(startTime);
-        osc.stop(startTime + duration);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
       } catch (e) {}
     }
 
     function generateSlotMappingInMemory() {
       let mapping = {};
       let availableItems = inventory.filter(i => (parseInt(i.qty) || 0) > 0);
-      
       if (availableItems.length === 0) {
         for (let i = 1; i <= 1000; i++) mapping[i] = "Stok Bitti";
         return mapping;
       }
-
       let pool = [];
       availableItems.forEach(item => {
         const weight = Math.max(1, parseInt(item.weight) || parseInt(item.qty) || 1);
-        for (let w = 0; w < weight * 10; w++) {
-          pool.push(item.name);
-        }
+        for (let w = 0; w < weight * 10; w++) pool.push(item.name);
       });
-
       for (let num = 1; num <= 1000; num++) {
-        const randomIndex = Math.floor(Math.random() * pool.length);
-        mapping[num] = pool[randomIndex];
+        mapping[num] = pool[Math.floor(Math.random() * pool.length)];
       }
       return mapping;
     }
@@ -243,12 +352,12 @@
     async function loadAppData() {
       if (isSyncing) return;
       isSyncing = true;
-
       const statusEl = document.getElementById('txtConnectionStatus');
+      const dotEl = document.getElementById('connectionDot');
+
       try {
         let { data: invData, error: invErr } = await supabaseClient.from('inventory').select('*');
         if (invErr) throw invErr;
-
         inventory = invData || [];
         localStorage.setItem('suzener_offline_inv', JSON.stringify(inventory));
 
@@ -262,101 +371,126 @@
           await saveSlotMappingToCloud();
         } else {
           slotMapping = {};
-          mapData.forEach(row => {
-            slotMapping[row.slot_number] = row.prize_name;
-          });
+          mapData.forEach(row => slotMapping[row.slot_number] = row.prize_name);
           localStorage.setItem('suzener_offline_map', JSON.stringify(slotMapping));
         }
 
         statusEl.textContent = "Bulut Bağlı (Senkronize)";
-        statusEl.className = "text-[9px] font-semibold text-emerald-400";
+        statusEl.className = "text-[10px] font-semibold text-emerald-600";
+        dotEl.className = "w-2 h-2 rounded-full bg-emerald-500";
       } catch (e) {
-        statusEl.textContent = "Çevrimdışı Mod (Yerel Bellek)";
-        statusEl.className = "text-[9px] font-semibold text-amber-400";
+        statusEl.textContent = "Çevrimdışı Mod";
+        statusEl.className = "text-[10px] font-semibold text-orange-500";
+        dotEl.className = "w-2 h-2 rounded-full bg-orange-500";
 
         const localInv = localStorage.getItem('suzener_offline_inv');
         inventory = localInv ? JSON.parse(localInv) : [];
-
         const localDrawn = localStorage.getItem('suzener_offline_drawn');
         drawnNumbers = localDrawn ? JSON.parse(localDrawn) : [];
-
         const localMap = localStorage.getItem('suzener_offline_map');
         slotMapping = localMap ? JSON.parse(localMap) : generateSlotMappingInMemory();
       } finally {
         isSyncing = false;
       }
-
       updateRemainingStats();
     }
 
     async function saveInventoryToCloud() {
       localStorage.setItem('suzener_offline_inv', JSON.stringify(inventory));
-      try {
-        await supabaseClient.from('inventory').upsert(inventory);
-      } catch (e) {}
+      try { await supabaseClient.from('inventory').upsert(inventory); } catch (e) {}
       updateRemainingStats();
     }
 
     async function saveSlotMappingToCloud() {
       localStorage.setItem('suzener_offline_map', JSON.stringify(slotMapping));
       try {
-        const rows = Object.keys(slotMapping).map(num => ({
-          slot_number: parseInt(num),
-          prize_name: slotMapping[num]
-        }));
+        const rows = Object.keys(slotMapping).map(num => ({ slot_number: parseInt(num), prize_name: slotMapping[num] }));
         await supabaseClient.from('slot_mapping').upsert(rows);
       } catch (e) {}
     }
 
     window.addEventListener('online', async () => {
       document.getElementById('txtConnectionStatus').textContent = "İnternet Geldi, Eşitleniyor...";
-      document.getElementById('txtConnectionStatus').className = "text-[9px] font-semibold text-blue-400";
-      try {
-        await saveInventoryToCloud();
-        await saveSlotMappingToCloud();
-        await loadAppData();
-      } catch(e) {}
+      try { await saveInventoryToCloud(); await saveSlotMappingToCloud(); await loadAppData(); } catch(e) {}
     });
 
     window.addEventListener('offline', () => {
-      document.getElementById('txtConnectionStatus').textContent = "Çevrimdışı Mod (Yerel Bellek)";
-      document.getElementById('txtConnectionStatus').className = "text-[9px] font-semibold text-amber-400";
+      document.getElementById('txtConnectionStatus').textContent = "Çevrimdışı Mod";
+      document.getElementById('txtConnectionStatus').className = "text-[10px] font-semibold text-orange-500";
+      document.getElementById('connectionDot').className = "w-2 h-2 rounded-full bg-orange-500";
     });
 
-    // Sadece yönetim panelinden gelen stok değişikliklerini dinle (Sonsuz kilitlenme engellendi)
     function setupRealtimeSync() {
       try {
-        supabaseClient
-          .channel('public-inventory-changes')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, payload => {
-            loadAppData();
-          })
+        supabaseClient.channel('public-inventory-changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, () => loadAppData())
           .subscribe();
       } catch(e) {}
     }
 
-    async function startDraw() {
-      if (isSpinning) return;
+    // ==========================================
+    // YENİ: REHBER POPUP DÖNGÜSÜ (20sn Aç / 25sn Göster / Kapat)
+    // ==========================================
+    function resetIdleGuideTimer() {
+      if (idleGuideTimeout) clearTimeout(idleGuideTimeout);
+      if (guideAutoCloseTimeout) clearTimeout(guideAutoCloseTimeout);
       
-      const totalStock = getTotalStock();
-      if (totalStock <= 0) {
-        showNotification("Stok Bitti", "Tüm hediyelerin stoku bitti! Lütfen yönetim panelinden stok ekleyin.");
-        return;
-      }
+      // Eğer popup açıksa döngüyü başlatma
+      if (isGuideOpen) return;
 
-      if (drawnNumbers.length >= 1000) {
-        showNotification("Çekiliş Tamamlandı", "Tüm 1000 numara çekildi!");
-        return;
+      // 20 Saniye bekle, sonra aç
+      idleGuideTimeout = setTimeout(() => {
+        // Çekiliş yapılmıyorsa ve bekleme yoksa göster
+        if (!isSpinning && !isCooldown && !document.getElementById('modalResult').classList.contains('hidden') === false) {
+          document.getElementById('guidePopup').classList.remove('hidden');
+          isGuideOpen = true;
+          
+          try { lucide.createIcons(); } catch(e) {}
+
+          // Popup açıldıktan 25 saniye sonra otomatik kapat (Döngü devam eder)
+          guideAutoCloseTimeout = setTimeout(() => {
+            closeGuide(true); // Otomatik kapandığı için true gönderiyoruz (hemen döngüyü başlatması için)
+          }, 25000); // 25 Saniye açık kalma
+        }
+      }, 20000); // 20 Saniye bekleme
+    }
+
+    function closeGuide(isAutoClose = false) {
+      document.getElementById('guidePopup').classList.add('hidden');
+      isGuideOpen = false;
+      
+      if (guideAutoCloseTimeout) {
+        clearTimeout(guideAutoCloseTimeout);
+        guideAutoCloseTimeout = null;
       }
+      
+      // Kapatıldıktan sonra 20 saniyelik bekleme döngüsünü tekrar başlat
+      resetIdleGuideTimer();
+    }
+
+    // Ekrana her dokunulduğunda
+    document.addEventListener('pointerdown', () => {
+      if (isGuideOpen) {
+        // Eğer açıksa kapat (manuel kapatma)
+        closeGuide(false);
+      } else {
+        // Açık değilse sadece bekleyiş sayacını sıfırla (döngüyü yeniden başlat)
+        resetIdleGuideTimer();
+      }
+    });
+    // ==========================================
+
+    async function startDraw() {
+      if (isSpinning || isCooldown) return; 
+      
+      if (getTotalStock() <= 0) { showNotification("Stok Bitti", "Tüm hediyelerin stoku bitti!"); return; }
+      if (drawnNumbers.length >= 1000) { showNotification("Çekiliş Tamamlandı", "Tüm 1000 numara çekildi!"); return; }
 
       let availableNums = [];
       for (let i = 1; i <= 1000; i++) {
         if (!drawnNumbers.includes(i)) {
-          const prizeName = slotMapping[i];
-          const matchItem = inventory.find(item => item.name === prizeName);
-          if (matchItem && matchItem.qty > 0) {
-            availableNums.push(i);
-          }
+          const matchItem = inventory.find(item => item.name === slotMapping[i]);
+          if (matchItem && matchItem.qty > 0) availableNums.push(i);
         }
       }
 
@@ -365,37 +499,36 @@
         await saveSlotMappingToCloud();
         for (let i = 1; i <= 1000; i++) {
           if (!drawnNumbers.includes(i)) {
-            const prizeName = slotMapping[i];
-            const matchItem = inventory.find(item => item.name === prizeName);
+            const matchItem = inventory.find(item => item.name === slotMapping[i]);
             if (matchItem && matchItem.qty > 0) availableNums.push(i);
           }
         }
       }
 
-      if (availableNums.length === 0) {
-        showNotification("Hata", "Stokta verecek hediye kalmadı!");
-        return;
-      }
+      if (availableNums.length === 0) { showNotification("Hata", "Stokta verecek hediye kalmadı!"); return; }
 
       const winNum = availableNums[Math.floor(Math.random() * availableNums.length)];
       const winPrize = slotMapping[winNum] || "Sürpriz Hediye";
       const winFormatted = String(winNum).padStart(3, '0');
 
       isSpinning = true;
-
       const modal = document.getElementById('modalResult');
       const animBall = document.getElementById('animBall');
       const animPaper = document.getElementById('animPaper');
+      const autoFillBar = document.getElementById('autoFillBar');
       
       animBall.classList.remove('hidden');
-      animBall.textContent = `#${Math.floor(Math.random() * 900 + 100)}`;
+      animBall.textContent = String(Math.floor(Math.random() * 900 + 100));
       animPaper.classList.add('hidden');
+      
+      autoFillBar.style.width = '0%';
+      
       modal.classList.remove('hidden');
 
       let tickCount = 0;
       const tickInterval = setInterval(() => {
         playBeepSound(500 + (tickCount % 4) * 80, 0.04);
-        animBall.textContent = `#${Math.floor(Math.random() * 900 + 100)}`;
+        animBall.textContent = String(Math.floor(Math.random() * 900 + 100));
         tickCount++;
       }, 100);
 
@@ -406,15 +539,13 @@
         animBall.classList.add('hidden');
         animPaper.classList.remove('hidden');
 
-        document.getElementById('txtWinnerNumber').textContent = `#${winFormatted}`;
+        document.getElementById('txtWinnerNumber').textContent = winFormatted; 
         document.getElementById('txtWinnerPrize').textContent = winPrize;
 
         drawnNumbers.push(winNum);
         localStorage.setItem('suzener_offline_drawn', JSON.stringify(drawnNumbers));
 
-        try {
-          await supabaseClient.from('drawn_numbers').insert([{ draw_number: winNum, prize_name: winPrize }]);
-        } catch (e) {}
+        try { await supabaseClient.from('drawn_numbers').insert([{ draw_number: winNum, prize_name: winPrize }]); } catch (e) {}
 
         const invIndex = inventory.findIndex(item => item.name === winPrize);
         if (invIndex !== -1 && inventory[invIndex].qty > 0) {
@@ -422,24 +553,91 @@
           await saveInventoryToCloud();
         }
 
-        try {
-          confetti({ particleCount: 100, spread: 90, origin: { y: 0.6 } });
-        } catch (e) {}
+        try { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); } catch (e) {}
 
         isSpinning = false;
+
+        setTimeout(() => {
+          autoFillBar.style.width = '100%';
+        }, 50);
+
+        autoCloseTimeout = setTimeout(() => {
+          forceCloseModal(false);
+        }, 2000);
+
       }, 1500);
     }
 
-    document.getElementById('fanusContainer').addEventListener('click', startDraw);
+    function forceCloseModal(isManualClick) {
+      if (document.getElementById('modalResult').classList.contains('hidden')) return;
+      
+      if (autoCloseTimeout) {
+        clearTimeout(autoCloseTimeout);
+        autoCloseTimeout = null;
+      }
 
-    document.getElementById('btnCloseModal').addEventListener('click', () => {
       document.getElementById('modalResult').classList.add('hidden');
-    });
+      document.getElementById('autoFillBar').style.width = '0%';
+
+      if (isManualClick) {
+        startCooldown();
+      } else {
+        resetIdleGuideTimer();
+      }
+    }
+
+    function startCooldown() {
+      isCooldown = true;
+      
+      const fanus = document.getElementById('fanusContainer');
+      const btnUI = document.getElementById('drawBtnUI');
+      const btnIcon = document.getElementById('drawBtnIcon');
+      const btnText = document.getElementById('drawBtnText');
+      
+      fanus.classList.add('locked-fanus');
+      btnUI.classList.replace('draw-btn', 'bg-slate-400');
+      
+      let countdown = 3;
+      btnText.textContent = `BEKLE (${countdown})`;
+      
+      btnIcon.setAttribute('data-lucide', 'lock'); 
+      try { lucide.createIcons(); } catch(e) {}
+
+      const interval = setInterval(() => {
+        countdown--;
+        if (countdown > 0) {
+          btnText.textContent = `BEKLE (${countdown})`;
+          playBeepSound(300, 0.1);
+        } else {
+          clearInterval(interval);
+        }
+      }, 1000);
+
+      cooldownTimeout = setTimeout(() => {
+        isCooldown = false;
+        fanus.classList.remove('locked-fanus');
+        btnUI.classList.replace('bg-slate-400', 'draw-btn');
+        
+        btnText.textContent = "ÇEKMEK İÇİN DOKUN";
+        
+        btnIcon.setAttribute('data-lucide', 'unlock');
+        try { lucide.createIcons(); } catch(e) {}
+        
+        playBeepSound(600, 0.15);
+        
+        resetIdleGuideTimer(); 
+      }, 3000);
+    }
+
+    document.getElementById('fanusContainer').addEventListener('click', startDraw);
+    document.getElementById('btnCloseModal').addEventListener('click', () => forceCloseModal(true));
 
     window.onload = async function() {
       await loadAppData();
       setupRealtimeSync();
       try { lucide.createIcons(); } catch(e) {}
+      
+      resetIdleGuideTimer(); 
     };
   </script>
 

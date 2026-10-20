@@ -1,7 +1,9 @@
-const CACHE_NAME = 'suzener-market-v22';
+const CACHE_NAME = 'suzener-market-cekilis-v1.2'; // Sürümü artırdık (v1.2 yaptık)
 const ASSETS = [
   './',
   './index.html',
+  './logs.html',       // Loglar sayfası eklendi
+  './yonetim.html',    // Yönetim paneli eklendi
   './manifest.json',
   './icon.png'
 ];
