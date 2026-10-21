@@ -142,11 +142,10 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let logsList = [];
-    let logToDelete = null; 
+    let logTimestampToDelete = null; // Silinecek kaydın zaman damgasını tutacağız
 
-    // HATA ÇÖZÜMÜ: Parametreleri doğrudan HTML'e gömmek yerine, butona data özellikleri ile veriyoruz.
-    window.openDeleteModal = function(drawNumber, prizeName) {
-      logToDelete = drawNumber;
+    window.openDeleteModal = function(drawNumber, prizeName, timestamp) {
+      logTimestampToDelete = timestamp;
       document.getElementById('deleteModalMessage').innerHTML = `<strong class="text-blue-900">"${prizeName}"</strong> (Numara: #${drawNumber}) isimli bu çekiliş kaydını silmek istediğinize emin misiniz?`;
       document.getElementById('deleteModal').classList.remove('hidden');
       try { lucide.createIcons(); } catch(e) {}
@@ -154,11 +153,11 @@
 
     window.closeDeleteModal = function() {
       document.getElementById('deleteModal').classList.add('hidden');
-      logToDelete = null;
+      logTimestampToDelete = null;
     };
 
     document.getElementById('btnConfirmDelete').addEventListener('click', async () => {
-      if (!logToDelete) return;
+      if (!logTimestampToDelete) return;
 
       const btn = document.getElementById('btnConfirmDelete');
       const originalText = btn.innerHTML;
@@ -167,15 +166,16 @@
       try { lucide.createIcons(); } catch(e) {}
 
       try {
-        // Doğru sütun adı 'draw_number' kullanılıyor
+        // GÜNCELLEME: Silme işlemi artık zaman damgası (drawn_at) ile yapılıyor
         const { error } = await supabaseClient
           .from('drawn_numbers')
           .delete()
-          .eq('draw_number', logToDelete);
+          .eq('drawn_at', logTimestampToDelete);
 
         if (error) throw error;
 
-        logsList = logsList.filter(log => log.draw_number !== logToDelete);
+        // Ekrandaki listeden de ilgili zaman damgasına sahip kaydı siliyoruz
+        logsList = logsList.filter(log => log.drawn_at !== logTimestampToDelete);
         
         closeDeleteModal();
         populateDateOptions();
@@ -308,10 +308,9 @@
         const timeStr = !isNaN(dateObj.getTime()) ? dateObj.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Şimdi';
 
         const isLatest = (index === 0 && sortOrder === 'desc' && dateFilter === 'all');
-        
-        // HATA ÇÖZÜMÜ BURADA: Tıklama fonksiyonundaki tırnak hatalarını önlemek için escape işlemi uygulandı
         const safePrizeName = log.prize_name.replace(/'/g, "\\'");
         
+        // GÜNCELLEME: Sil butonuna artık tarihi (drawn_at) gönderiyoruz
         htmlContent += `
           <div class="p-3.5 ${isLatest ? 'bg-red-50 border-red-200' : 'bg-blue-50/50 border-blue-100'} border rounded-2xl flex items-center justify-between shadow-sm mb-2 group">
             <div class="flex items-center gap-3">
@@ -327,8 +326,8 @@
             </div>
             
             <div class="flex items-center gap-2">
-              <!-- Sil butonuna veriler data özelliği ile aktarılıyor -->
-              <button data-num="${log.draw_number}" data-prize="${safePrizeName}" onclick="openDeleteModal(this.getAttribute('data-num'), this.getAttribute('data-prize'))" class="w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-800 flex items-center justify-center transition-all shadow-sm border border-red-100/50 opacity-0 group-hover:opacity-100 focus:opacity-100">
+              <!-- Sil butonuna log.drawn_at parametresi eklendi -->
+              <button data-num="${log.draw_number}" data-prize="${safePrizeName}" data-time="${log.drawn_at}" onclick="openDeleteModal(this.getAttribute('data-num'), this.getAttribute('data-prize'), this.getAttribute('data-time'))" class="w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-800 flex items-center justify-center transition-all shadow-sm border border-red-100/50 opacity-0 group-hover:opacity-100 focus:opacity-100">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
 
