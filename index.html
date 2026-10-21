@@ -38,28 +38,11 @@
       justify-content: center;
     }
 
-    /* YATAY EKRAN (LANDSCAPE) İÇİN ÖZEL AYARLAR */
     @media (orientation: landscape) {
-      body {
-        flex-direction: row;
-        padding: 10px;
-      }
-      #drawContent {
-        flex-direction: row !important;
-        max-width: 100% !important;
-        gap: 2rem !important;
-      }
-      .fanus-wrapper {
-        width: 220px !important;
-        height: 220px !important;
-        margin: 0 !important;
-      }
-      .info-panel {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        max-width: 300px;
-      }
+      body { flex-direction: row; padding: 10px; }
+      #drawContent { flex-direction: row !important; max-width: 100% !important; gap: 2rem !important; }
+      .fanus-wrapper { width: 220px !important; height: 220px !important; margin: 0 !important; }
+      .info-panel { display: flex; flex-direction: column; justify-content: center; max-width: 300px; }
     }
 
     .real-fanus {
@@ -67,10 +50,7 @@
       border: 4px solid rgba(255, 255, 255, 0.6);
       border-top: 4px solid rgba(255, 255, 255, 0.9);
       border-bottom: 4px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 
-        inset 0 0 20px rgba(255, 255, 255, 0.5),
-        inset 0 -10px 20px rgba(30, 58, 138, 0.2),
-        0 10px 25px -5px rgba(30, 58, 138, 0.3);
+      box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.5), inset 0 -10px 20px rgba(30, 58, 138, 0.2), 0 10px 25px -5px rgba(30, 58, 138, 0.3);
     }
 
     .glass-reflection {
@@ -93,17 +73,13 @@
       70% { transform: scale(1.05) translateY(-10px); opacity: 1; }
       100% { transform: scale(1) translateY(0); opacity: 1; }
     }
-    .animate-ball-pop {
-      animation: ballPopup 0.6s ease-out forwards;
-    }
+    .animate-ball-pop { animation: ballPopup 0.6s ease-out forwards; }
 
     @keyframes ticketReveal {
       0% { transform: scale(0.9) translateY(20px); opacity: 0; }
       100% { transform: scale(1) translateY(0); opacity: 1; }
     }
-    .animate-ticket-reveal {
-      animation: ticketReveal 0.4s ease-out forwards;
-    }
+    .animate-ticket-reveal { animation: ticketReveal 0.4s ease-out forwards; }
 
     .draw-btn {
       background: linear-gradient(180deg, #2563eb 0%, #1e40af 100%);
@@ -111,29 +87,14 @@
       box-shadow: 0 4px 0 #172554, 0 8px 15px rgba(0,0,0,0.2);
       transition: transform 0.1s, box-shadow 0.1s;
     }
-    .draw-btn:active {
-      transform: translateY(4px);
-      box-shadow: 0 0 0 #172554, 0 4px 10px rgba(0,0,0,0.2);
-    }
+    .draw-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #172554, 0 4px 10px rgba(0,0,0,0.2); }
     
-    .locked-fanus {
-      filter: grayscale(40%);
-      opacity: 0.7;
-      pointer-events: none;
-    }
+    .locked-fanus { filter: grayscale(40%); opacity: 0.7; pointer-events: none; }
 
-    .ticket-divider {
-      border-top: 2px dashed #94a3b8;
-      position: relative;
-    }
+    .ticket-divider { border-top: 2px dashed #94a3b8; position: relative; }
     .ticket-divider::before, .ticket-divider::after {
-      content: '';
-      position: absolute;
-      top: -12px;
-      width: 24px;
-      height: 24px;
-      background-color: #eff6ff; 
-      border-radius: 50%;
+      content: ''; position: absolute; top: -12px; width: 24px; height: 24px;
+      background-color: #eff6ff; border-radius: 50%;
     }
     .ticket-divider::before { left: -14px; }
     .ticket-divider::after { right: -14px; }
@@ -143,18 +104,25 @@
 
   <main id="drawContent" class="w-full max-w-md mx-auto flex flex-col items-center justify-center gap-4">
     
-    <!-- Sol Taraf (Yatayda) / Üst Taraf (Dikeyde) -->
     <div class="info-panel text-center mb-1 flex flex-col items-center">
-      <h1 class="text-xl font-black tracking-widest text-blue-900">SÜZENER MARKET</h1>
-      <div class="flex items-center justify-center gap-1.5 mt-1 mb-3 bg-white/50 px-3 py-1 rounded-full border border-blue-200">
+            <!-- YENİ: Dışı bordo, içi mavi, alt alta iki satır -->
+      <h1 class="text-4xl font-black tracking-widest uppercase leading-none relative flex flex-col items-center">
+        <span class="absolute text-red-800 translate-x-[2px] translate-y-[2px]">
+          SÜZENER<br>MARKET
+        </span>
+        <span class="relative text-blue-600">
+          SÜZENER<br>MARKET
+        </span>
+      </h1>
+      
+      <div class="flex items-center justify-center gap-1.5 mt-2 mb-3 bg-white/50 px-3 py-1 rounded-full border border-blue-200">
         <span id="connectionDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
         <p id="txtConnectionStatus" class="text-[10px] font-semibold text-slate-600">Sisteme Bağlanılıyor...</p>
       </div>
       
-      <!-- Masaüstü/Yatay Görünümde Bilgi Kutusu -->
       <div class="hidden landscape:flex flex-col gap-2 w-full mt-2">
         <div class="text-[10px] font-extrabold uppercase tracking-wider text-white bg-red-800 px-3 py-1 rounded-md shadow-sm text-center">
-          AKTİF SİSTEM v1.2
+          AKTİF SİSTEM v1.3
         </div>
         <div id="txtRemainingStatsLandscape" class="text-[11px] font-bold text-white bg-red-800 px-3 py-1 rounded-md shadow-sm text-center">
           Kalan Hediye: 0
@@ -162,20 +130,17 @@
       </div>
     </div>
 
-    <!-- Ana Kart (Fanus) -->
     <div class="w-full bg-white border-2 border-blue-100 rounded-3xl p-4 sm:p-5 shadow-xl relative flex flex-col items-center">
       
-      <!-- Üst Bilgi (Sadece Dikey Görünümde) -->
       <div class="w-full flex landscape:hidden items-center justify-between mb-3">
         <span class="text-[10px] font-extrabold uppercase tracking-wider text-white bg-red-800 px-2.5 py-1 rounded-md shadow-sm">
-          AKTİF SİSTEM <span class="opacity-75">v1.2</span>
+          AKTİF SİSTEM <span class="opacity-75">v1.3</span>
         </span>
         <span id="txtRemainingStats" class="text-[11px] font-bold text-white bg-red-800 px-3 py-1 rounded-md border border-red-900 shadow-sm">
           Kalan Hediye: 0
         </span>
       </div>
 
-      <!-- GERÇEKÇİ VE HAFİF FANUS -->
       <div id="fanusContainer" class="fanus-wrapper real-fanus relative w-64 h-64 sm:w-72 sm:h-72 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 active:scale-[0.98] my-2 overflow-hidden">
         
         <div class="glass-reflection absolute top-2 left-4 w-28 h-14 pointer-events-none z-20 transform -rotate-12"></div>
@@ -195,7 +160,6 @@
           <div class="w-6 h-6 rounded-full bg-rose-400 floating-ball" style="animation-delay: 1.1s;"></div>
         </div>
 
-        <!-- Buton Kısmı -->
         <div class="absolute z-30 flex flex-col items-center justify-center">
           <div id="drawBtnUI" class="draw-btn px-6 py-3 rounded-2xl flex flex-col items-center">
             <i id="drawBtnIcon" data-lucide="unlock" class="w-5 h-5 text-white mb-1"></i>
@@ -209,9 +173,11 @@
 
   </main>
 
-  <!-- REHBER POPUP -->
+  <!-- REHBER POPUP (Tam ekran kalkan eklendi) -->
   <div id="guidePopup" class="fixed inset-0 bg-blue-900/80 z-[60] flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl p-6 max-w-md w-full text-center shadow-2xl animate-ticket-reveal border-4 border-blue-500 cursor-pointer" onclick="closeGuide()">
+    <div class="absolute inset-0 cursor-pointer" onclick="closeGuide()"></div>
+    
+    <div class="relative bg-white rounded-3xl p-6 max-w-md w-full text-center shadow-2xl animate-ticket-reveal border-4 border-blue-500 z-10 pointer-events-none">
       
       <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-blue-200">
         <i data-lucide="pointer" class="w-10 h-10 text-blue-600"></i>
@@ -287,10 +253,10 @@
     let autoCloseTimeout = null; 
     let cooldownTimeout = null;
     
-    // Popup Döngü Zamanlayıcıları
     let idleGuideTimeout = null; 
     let guideAutoCloseTimeout = null;
     let isGuideOpen = false;
+    let guideJustClosed = false;
 
     function showNotification(title, message, onConfirm = null) {
       const modal = document.getElementById('customModal');
@@ -428,31 +394,24 @@
       } catch(e) {}
     }
 
-    // ==========================================
-    // YENİ: REHBER POPUP DÖNGÜSÜ (20sn Aç / 25sn Göster / Kapat)
-    // ==========================================
     function resetIdleGuideTimer() {
       if (idleGuideTimeout) clearTimeout(idleGuideTimeout);
       if (guideAutoCloseTimeout) clearTimeout(guideAutoCloseTimeout);
       
-      // Eğer popup açıksa döngüyü başlatma
       if (isGuideOpen) return;
 
-      // 20 Saniye bekle, sonra aç
       idleGuideTimeout = setTimeout(() => {
-        // Çekiliş yapılmıyorsa ve bekleme yoksa göster
         if (!isSpinning && !isCooldown && !document.getElementById('modalResult').classList.contains('hidden') === false) {
           document.getElementById('guidePopup').classList.remove('hidden');
           isGuideOpen = true;
           
           try { lucide.createIcons(); } catch(e) {}
 
-          // Popup açıldıktan 25 saniye sonra otomatik kapat (Döngü devam eder)
           guideAutoCloseTimeout = setTimeout(() => {
-            closeGuide(true); // Otomatik kapandığı için true gönderiyoruz (hemen döngüyü başlatması için)
-          }, 25000); // 25 Saniye açık kalma
+            closeGuide(true); 
+          }, 25000); 
         }
-      }, 20000); // 20 Saniye bekleme
+      }, 20000); 
     }
 
     function closeGuide(isAutoClose = false) {
@@ -463,25 +422,27 @@
         clearTimeout(guideAutoCloseTimeout);
         guideAutoCloseTimeout = null;
       }
+
+      guideJustClosed = true;
+      setTimeout(() => {
+        guideJustClosed = false;
+      }, 250);
       
-      // Kapatıldıktan sonra 20 saniyelik bekleme döngüsünü tekrar başlat
       resetIdleGuideTimer();
     }
 
-    // Ekrana her dokunulduğunda
-    document.addEventListener('pointerdown', () => {
+    document.addEventListener('pointerdown', (e) => {
       if (isGuideOpen) {
-        // Eğer açıksa kapat (manuel kapatma)
-        closeGuide(false);
-      } else {
-        // Açık değilse sadece bekleyiş sayacını sıfırla (döngüyü yeniden başlat)
+        return;
+      }
+      
+      if (!guideJustClosed) {
         resetIdleGuideTimer();
       }
     });
-    // ==========================================
 
     async function startDraw() {
-      if (isSpinning || isCooldown) return; 
+      if (isGuideOpen || guideJustClosed || isSpinning || isCooldown) return; 
       
       if (getTotalStock() <= 0) { showNotification("Stok Bitti", "Tüm hediyelerin stoku bitti!"); return; }
       if (drawnNumbers.length >= 1000) { showNotification("Çekiliş Tamamlandı", "Tüm 1000 numara çekildi!"); return; }
