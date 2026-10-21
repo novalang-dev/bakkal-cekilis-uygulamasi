@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Süzener Market - Çekiliş</title>
+  <title>Süzener Market - Çekiliş v1.5</title>
   <link rel="manifest" href="./manifest.json">
 
   <meta name="theme-color" content="#1e3a8a">
@@ -38,11 +38,47 @@
       justify-content: center;
     }
 
+    /* YATAY EKRAN (LANDSCAPE) İÇİN GÜNCELLENMİŞ AYARLAR */
     @media (orientation: landscape) {
-      body { flex-direction: row; padding: 10px; }
-      #drawContent { flex-direction: row !important; max-width: 100% !important; gap: 2rem !important; }
-      .fanus-wrapper { width: 220px !important; height: 220px !important; margin: 0 !important; }
-      .info-panel { display: flex; flex-direction: column; justify-content: center; max-width: 300px; }
+      body {
+        flex-direction: row;
+        padding: 15px;
+      }
+      #drawContent {
+        flex-direction: row !important;
+        max-width: 95vw !important; /* Ekranın %95'ini kaplaması için */
+        gap: 2rem !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      .info-panel {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        max-width: 45%;
+        text-align: left;
+      }
+      /* Fanus ve Kartı Büyütüyoruz */
+      .fanus-wrapper {
+        width: 300px !important;
+        height: 300px !important;
+        margin: 0 !important;
+      }
+      .draw-card-container {
+        width: 350px !important;
+        padding: 2rem !important;
+        flex-shrink: 0;
+      }
+      .hidden-landscape {
+        display: none !important;
+      }
+      .flex-landscape {
+        display: flex !important;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+      }
     }
 
     .real-fanus {
@@ -102,39 +138,43 @@
 </head>
 <body class="text-slate-800">
 
-  <main id="drawContent" class="w-full max-w-md mx-auto flex flex-col items-center justify-center gap-4">
+  <main id="drawContent" class="w-full max-w-6xl mx-auto flex flex-col items-center justify-center gap-4">
     
+    <!-- Bilgi Paneli -->
     <div class="info-panel text-center mb-1 flex flex-col items-center">
-            <!-- YENİ: Dışı bordo, içi mavi, alt alta iki satır -->
-      <h1 class="text-4xl font-black tracking-widest uppercase leading-none relative flex flex-col items-center">
-        <span class="absolute text-red-800 translate-x-[2px] translate-y-[2px]">
-          SÜZENER<br>MARKET
-        </span>
-        <span class="relative text-blue-600">
-          SÜZENER<br>MARKET
-        </span>
-      </h1>
       
-      <div class="flex items-center justify-center gap-1.5 mt-2 mb-3 bg-white/50 px-3 py-1 rounded-full border border-blue-200">
+      <div id="antiBurnContainer" class="w-full flex justify-center">
+        <h1 class="text-4xl lg:text-5xl font-black tracking-widest uppercase leading-none relative flex flex-col items-center">
+          <span class="absolute text-red-800 translate-x-[2px] translate-y-[2px]">
+            SÜZENER<br>MARKET
+          </span>
+          <span class="relative text-blue-600">
+            SÜZENER<br>MARKET
+          </span>
+        </h1>
+      </div>
+      
+      <div class="flex items-center justify-center gap-1.5 mt-4 mb-3 bg-white/50 px-3 py-1 rounded-full border border-blue-200">
         <span id="connectionDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
         <p id="txtConnectionStatus" class="text-[10px] font-semibold text-slate-600">Sisteme Bağlanılıyor...</p>
       </div>
       
-      <div class="hidden landscape:flex flex-col gap-2 w-full mt-2">
-        <div class="text-[10px] font-extrabold uppercase tracking-wider text-white bg-red-800 px-3 py-1 rounded-md shadow-sm text-center">
-          AKTİF SİSTEM v1.4
+      <div class="hidden flex-landscape landscape:flex flex-col gap-2 w-full mt-2">
+        <div class="text-xs font-extrabold uppercase tracking-wider text-white bg-red-800 px-4 py-1.5 rounded-md shadow-sm text-center">
+          AKTİF SİSTEM v1.5
         </div>
-        <div id="txtRemainingStatsLandscape" class="text-[11px] font-bold text-white bg-red-800 px-3 py-1 rounded-md shadow-sm text-center">
+        <div id="txtRemainingStatsLandscape" class="text-xs font-bold text-white bg-red-800 px-4 py-1.5 rounded-md shadow-sm text-center">
           Kalan Hediye: 0
         </div>
       </div>
     </div>
 
-    <div class="w-full bg-white border-2 border-blue-100 rounded-3xl p-4 sm:p-5 shadow-xl relative flex flex-col items-center">
+    <!-- Ana Kart (Fanus) -->
+    <div class="draw-card-container w-full max-w-md bg-white border-2 border-blue-100 rounded-3xl p-6 shadow-xl relative flex flex-col items-center">
       
       <div class="w-full flex landscape:hidden items-center justify-between mb-3">
         <span class="text-[10px] font-extrabold uppercase tracking-wider text-white bg-red-800 px-2.5 py-1 rounded-md shadow-sm">
-          AKTİF SİSTEM <span class="opacity-75">v1.4</span>
+          AKTİF SİSTEM <span class="opacity-75">v1.5</span>
         </span>
         <span id="txtRemainingStats" class="text-[11px] font-bold text-white bg-red-800 px-3 py-1 rounded-md border border-red-900 shadow-sm">
           Kalan Hediye: 0
@@ -173,7 +213,7 @@
 
   </main>
 
-  <!-- REHBER POPUP (Tam ekran kalkan eklendi) -->
+  <!-- REHBER POPUP -->
   <div id="guidePopup" class="fixed inset-0 bg-blue-900/80 z-[60] flex items-center justify-center p-4 hidden">
     <div class="absolute inset-0 cursor-pointer" onclick="closeGuide()"></div>
     
@@ -257,6 +297,9 @@
     let guideAutoCloseTimeout = null;
     let isGuideOpen = false;
     let guideJustClosed = false;
+
+    let antiBurnTimeout = null;
+    let lastMoveIndex = 0;
 
     function showNotification(title, message, onConfirm = null) {
       const modal = document.getElementById('customModal');
@@ -394,6 +437,30 @@
       } catch(e) {}
     }
 
+    function startAntiBurn() {
+      antiBurnTimeout = setInterval(() => {
+        if (!isSpinning && !isGuideOpen && !isCooldown) {
+          const container = document.getElementById('antiBurnContainer');
+          lastMoveIndex = (lastMoveIndex + 1) % 5;
+          
+          switch(lastMoveIndex) {
+            case 0: container.style.transform = 'translate(0px, 0px)'; break;
+            case 1: container.style.transform = 'translate(3px, 0px)'; break;
+            case 2: container.style.transform = 'translate(-3px, 2px)'; break;
+            case 3: container.style.transform = 'translate(0px, 3px)'; break;
+            case 4: container.style.transform = 'translate(2px, -2px)'; break;
+          }
+        }
+      }, 5 * 60 * 1000);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        loadAppData();
+        document.getElementById('antiBurnContainer').style.transform = 'translate(0px, 0px)';
+      }
+    });
+
     function resetIdleGuideTimer() {
       if (idleGuideTimeout) clearTimeout(idleGuideTimeout);
       if (guideAutoCloseTimeout) clearTimeout(guideAutoCloseTimeout);
@@ -432,6 +499,8 @@
     }
 
     document.addEventListener('pointerdown', (e) => {
+      document.getElementById('antiBurnContainer').style.transform = 'translate(0px, 0px)';
+      
       if (isGuideOpen) {
         return;
       }
@@ -599,6 +668,7 @@
       try { lucide.createIcons(); } catch(e) {}
       
       resetIdleGuideTimer(); 
+      startAntiBurn();
     };
   </script>
 
