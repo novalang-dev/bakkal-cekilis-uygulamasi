@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Süzener Market - Çekiliş v1.5</title>
+  <title>Süzener Market - Çekiliş v1.6</title>
   <link rel="manifest" href="./manifest.json">
 
   <meta name="theme-color" content="#1e3a8a">
@@ -161,7 +161,7 @@
       
       <div class="hidden flex-landscape landscape:flex flex-col gap-2 w-full mt-2">
         <div class="text-xs font-extrabold uppercase tracking-wider text-white bg-red-800 px-4 py-1.5 rounded-md shadow-sm text-center">
-          AKTİF SİSTEM v1.5
+          AKTİF SİSTEM v1.6
         </div>
         <div id="txtRemainingStatsLandscape" class="text-xs font-bold text-white bg-red-800 px-4 py-1.5 rounded-md shadow-sm text-center">
           Kalan Hediye: 0
@@ -174,7 +174,7 @@
       
       <div class="w-full flex landscape:hidden items-center justify-between mb-3">
         <span class="text-[10px] font-extrabold uppercase tracking-wider text-white bg-red-800 px-2.5 py-1 rounded-md shadow-sm">
-          AKTİF SİSTEM <span class="opacity-75">v1.5</span>
+          AKTİF SİSTEM <span class="opacity-75">v1.6</span>
         </span>
         <span id="txtRemainingStats" class="text-[11px] font-bold text-white bg-red-800 px-3 py-1 rounded-md border border-red-900 shadow-sm">
           Kalan Hediye: 0
@@ -259,7 +259,7 @@
           </div>
           
           <button id="btnCloseModal" class="relative overflow-hidden w-full py-3 bg-red-800 hover:bg-red-900 text-white font-extrabold text-sm rounded-xl transition-colors shadow-md flex items-center justify-center gap-2">
-            <div id="autoFillBar" class="absolute left-0 top-0 h-full bg-red-950/40 w-0 transition-all duration-[2000ms] ease-linear z-0"></div>
+            <div id="autoFillBar" class="absolute left-0 top-0 h-full bg-red-950/40 w-0 transition-all duration-[6000ms] ease-linear z-0"></div>
             <i data-lucide="check-circle" class="w-5 h-5 text-red-200 relative z-10"></i>
             <span class="relative z-10">HEDİYEYİ TESLİM ET</span>
           </button>
@@ -593,7 +593,7 @@
 
         autoCloseTimeout = setTimeout(() => {
           forceCloseModal(false);
-        }, 2000);
+        }, 6000);
 
       }, 1500);
     }
