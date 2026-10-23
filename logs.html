@@ -8,6 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;800;900&display=swap" rel="stylesheet">
   
   <style>
@@ -55,7 +56,6 @@
 </head>
 <body class="text-slate-800 min-h-full flex flex-col p-3 sm:p-6">
 
-  <!-- Üst Header -->
   <header class="w-full max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between bg-white border-2 border-blue-100 rounded-3xl px-4 py-3 shadow-xl mb-4 sm:mb-6 gap-3">
     <div class="flex items-center gap-3 w-full sm:w-auto">
       <div class="w-12 h-12 rounded-2xl bg-red-800 flex items-center justify-center shadow-md text-white font-black text-xl">
@@ -80,10 +80,8 @@
     </div>
   </header>
 
-  <!-- LOGLAR LİSTESİ VE FİLTRE BÖLÜMÜ -->
   <main class="w-full max-w-4xl mx-auto flex flex-col flex-1 bg-white border-2 border-blue-100 rounded-3xl p-4 sm:p-5 shadow-xl overflow-hidden">
     
-    <!-- Üst Kontrol & Filtre Barları -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-blue-100 flex-shrink-0">
       
       <div class="flex items-center gap-2">
@@ -115,13 +113,11 @@
 
     </div>
 
-    <!-- Log Listesi -->
     <div id="logsContainer" class="overflow-y-auto space-y-2 pr-2 custom-scrollbar flex-1">
       <div class="text-center py-12 text-slate-400 text-xs font-semibold">Loglar yükleniyor...</div>
     </div>
   </main>
 
-  <!-- SİLME ONAY MODALI -->
   <div id="deleteModal" class="fixed inset-0 bg-blue-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity">
     <div class="bg-white border border-blue-100 rounded-3xl p-7 max-w-sm w-full text-center shadow-2xl animate-fade-in">
       <div class="w-16 h-16 bg-red-50 border border-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 shadow-inner">
@@ -142,7 +138,7 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let logsList = [];
-    let logTimestampToDelete = null; // Silinecek kaydın zaman damgasını tutacağız
+    let logTimestampToDelete = null;
 
     window.openDeleteModal = function(drawNumber, prizeName, timestamp) {
       logTimestampToDelete = timestamp;
@@ -166,7 +162,6 @@
       try { lucide.createIcons(); } catch(e) {}
 
       try {
-        // GÜNCELLEME: Silme işlemi artık zaman damgası (drawn_at) ile yapılıyor
         const { error } = await supabaseClient
           .from('drawn_numbers')
           .delete()
@@ -174,7 +169,6 @@
 
         if (error) throw error;
 
-        // Ekrandaki listeden de ilgili zaman damgasına sahip kaydı siliyoruz
         logsList = logsList.filter(log => log.drawn_at !== logTimestampToDelete);
         
         closeDeleteModal();
@@ -310,7 +304,6 @@
         const isLatest = (index === 0 && sortOrder === 'desc' && dateFilter === 'all');
         const safePrizeName = log.prize_name.replace(/'/g, "\\'");
         
-        // GÜNCELLEME: Sil butonuna artık tarihi (drawn_at) gönderiyoruz
         htmlContent += `
           <div class="p-3.5 ${isLatest ? 'bg-red-50 border-red-200' : 'bg-blue-50/50 border-blue-100'} border rounded-2xl flex items-center justify-between shadow-sm mb-2 group">
             <div class="flex items-center gap-3">
@@ -326,7 +319,6 @@
             </div>
             
             <div class="flex items-center gap-2">
-              <!-- Sil butonuna log.drawn_at parametresi eklendi -->
               <button data-num="${log.draw_number}" data-prize="${safePrizeName}" data-time="${log.drawn_at}" onclick="openDeleteModal(this.getAttribute('data-num'), this.getAttribute('data-prize'), this.getAttribute('data-time'))" class="w-8 h-8 rounded-full bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-800 flex items-center justify-center transition-all shadow-sm border border-red-100/50 opacity-0 group-hover:opacity-100 focus:opacity-100">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
@@ -354,9 +346,57 @@
         .subscribe();
     }
 
+    function setupApprovalListener() {
+      supabaseClient
+        .channel('public-request-approval')
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'app_settings' }, payload => {
+          if (payload.new.key === 'request_status' && payload.new.value === 'pending') {
+            if (Swal.isVisible()) return;
+
+            let timerInterval;
+            Swal.fire({
+              title: 'Müşteri Çekiliş İstiyor!',
+              html: "Bir müşteri çekiliş yapmak için onay bekliyor.<br><b>Kalan Süre: <span id='swal-timer'>60</span> sn</b>",
+              icon: 'question',
+              showCancelButton: true,
+              confirmButtonColor: '#1e40af',
+              cancelButtonColor: '#991b1b',
+              confirmButtonText: 'Evet, Onayla',
+              cancelButtonText: 'İptal Et',
+              allowOutsideClick: false,
+              allowEscapeKey: false,
+              didOpen: () => {
+                const timerEl = document.getElementById('swal-timer');
+                let timeLeft = 60;
+                timerInterval = setInterval(() => {
+                  timeLeft--;
+                  if (timerEl) timerEl.textContent = timeLeft;
+                  if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    Swal.close();
+                    supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'rejected' }, { onConflict: 'key' });
+                  }
+                }, 1000);
+              },
+              willClose: () => {
+                clearInterval(timerInterval);
+              }
+            }).then(async (result) => {
+              if (result.isConfirmed) {
+                await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'approved' }, { onConflict: 'key' });
+              } else {
+                await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'rejected' }, { onConflict: 'key' });
+              }
+            });
+          }
+        })
+        .subscribe();
+    }
+
     window.onload = async function() {
       await fetchLogs();
       setupRealtimeLogs();
+      setupApprovalListener();
       try { lucide.createIcons(); } catch(e) {}
     };
   </script>

@@ -372,7 +372,6 @@
           displayDate = dateObj.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
         }
 
-        // Zaman Tüneli Çizgisi Ekleme Mantığı
         if (dateStr !== lastDateStr && dateStr) {
           if (index !== 0) htmlContent += `<div class="h-1"></div>`;
           htmlContent += `
@@ -477,10 +476,53 @@
         .subscribe();
     }
 
+    // ==========================================
+    // YENİ: Telegram için Onay Dinleyicisi
+    // ==========================================
+    function setupApprovalListener() {
+      supabaseClient
+        .channel('public-request-approval-tg')
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'app_settings' }, payload => {
+          if (payload.new.key === 'request_status' && payload.new.value === 'pending') {
+            
+            // Telegram'da zaten açık bir pencere varsa tekrar açma
+            if (window.tgApprovalOpen) return;
+            window.tgApprovalOpen = true;
+
+            let timeLeft = 60;
+            
+            if (tg && tg.showConfirm) {
+              // Telegram'ın kendi onay penceresini kullan
+              tg.showConfirm("Müşteri çekiliş yapmak istiyor! Parayı aldınız mı?", async (confirmed) => {
+                window.tgApprovalOpen = false;
+                if (confirmed) {
+                  await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'approved' }, { onConflict: 'key' });
+                  tg.showAlert("Çekiliş Onaylandı!");
+                } else {
+                  await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'rejected' }, { onConflict: 'key' });
+                  tg.showAlert("Çekiliş İptal Edildi!");
+                }
+              });
+            } else {
+              // Eğer Telegram dışında açılırsa tarayıcı alert'i kullan
+              const isConfirmed = confirm("Müşteri çekiliş yapmak istiyor! Parayı aldınız mı?");
+              window.tgApprovalOpen = false;
+              if (isConfirmed) {
+                supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'approved' }, { onConflict: 'key' });
+              } else {
+                supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'rejected' }, { onConflict: 'key' });
+              }
+            }
+          }
+        })
+        .subscribe();
+    }
+
     window.onload = async function() {
       if (checkUserAuth()) {
         await loadTgData();
         setupRealtimeLogs();
+        setupApprovalListener(); // Telegram onay dinleyicisini başlat
       }
       try { lucide.createIcons(); } catch(e) {}
     };

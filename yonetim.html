@@ -8,6 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- SweetAlert Eklendi -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   
   <style>
@@ -32,14 +34,13 @@
 </head>
 <body class="text-slate-800 min-h-full flex flex-col p-4 sm:p-8">
 
-  <!-- Üst Header -->
   <header class="w-full max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between bg-white/80 backdrop-blur-md border border-blue-100 rounded-[2rem] px-6 py-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] mb-8 gap-4 z-10">
     <div class="flex items-center gap-4 w-full sm:w-auto">
       <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-red-800 to-red-600 flex items-center justify-center shadow-lg shadow-red-800/30 text-white">
         <i data-lucide="settings" class="w-6 h-6"></i>
       </div>
       <div>
-        <h1 class="text-lg sm:text-xl font-black tracking-tight text-blue-950">Yönetim Paneli</h1>
+        <h1 class="text-lg sm:text-xl font-black tracking-tight text-blue-950">Yönetim Paneli <span class="text-xs text-red-800">v1.7</span></h1>
         <p id="txtConnectionStatus" class="text-[11px] font-bold text-emerald-500 flex items-center gap-1.5 mt-0.5 tracking-wide uppercase">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Bulut Bağlı
         </p>
@@ -51,14 +52,12 @@
         0 Çeşit Hediye
       </span>
       
-      <!-- LİNKE TIKLAYINCA LOGS.HTML'E GİDECEK -->
       <a href="logs.html" id="btnLogsLink" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-full text-xs font-extrabold transition-all shadow-md shadow-blue-600/20 active:scale-95 opacity-50 cursor-not-allowed pointer-events-none">
         <i data-lucide="activity" class="w-4 h-4"></i> Canlı Loglar
       </a>
     </div>
   </header>
 
-  <!-- 1. GÖRÜNÜM: GİRİŞ EKRANI (PIN) -->
   <div id="adminAuthBox" class="w-full max-w-md mx-auto my-auto bg-white/90 backdrop-blur-xl border border-blue-100 rounded-[2.5rem] p-10 text-center shadow-[0_20px_50px_rgb(0,0,0,0.05)] animate-slide-up">
     <div class="w-20 h-20 bg-red-50 border border-red-100 rounded-full flex items-center justify-center mx-auto mb-6 text-red-800 shadow-inner">
       <i data-lucide="lock" class="w-8 h-8"></i>
@@ -74,7 +73,6 @@
     </div>
   </div>
 
-  <!-- 2. GÖRÜNÜM: ANA YÖNETİM PANELİ -->
   <div id="viewAdminPanel" class="w-full max-w-6xl mx-auto hidden flex-col gap-6 flex-1">
       
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -157,7 +155,6 @@
     </div>
   </div>
 
-  <!-- BİLDİRİM MODALI -->
   <div id="customModal" class="fixed inset-0 bg-blue-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity">
     <div class="bg-white border border-blue-100 rounded-[2rem] p-7 max-w-sm w-full text-center shadow-2xl animate-slide-up">
       <h3 id="customModalTitle" class="text-sm font-black text-blue-950 mb-2 tracking-tight">BİLGİ</h3>
@@ -180,14 +177,12 @@
     let lastShuffleDate = '';
     let currentAdminPin = '1234';
     
-    // Loglar butonunun aktifliğini kontrol etmek için
     let isAuthenticated = false;
     const btnLogsLink = document.getElementById('btnLogsLink');
 
-    // Butona tıklanınca çalışacak koruma
     btnLogsLink.addEventListener('click', (e) => {
       if (!isAuthenticated) {
-        e.preventDefault(); // Sayfa geçişini engelle
+        e.preventDefault();
         showNotification("Giriş Gerekli", "Canlı logları görüntülemek için lütfen önce yönetici şifrenizi girin.");
       }
     });
@@ -393,7 +388,6 @@
       await saveSlotMappingToCloud();
     };
 
-    // GİRİŞ BUTONU MANTIĞI
     document.getElementById('btnAdminLogin').addEventListener('click', async () => {
       await fetchAdminPin();
       const pin = document.getElementById('inputAdminPin').value;
@@ -401,12 +395,10 @@
       if (pin === currentAdminPin) {
         isAuthenticated = true;
         
-        // Görünümü değiştir
         document.getElementById('adminAuthBox').classList.add('hidden');
         document.getElementById('viewAdminPanel').classList.remove('hidden');
         document.getElementById('viewAdminPanel').classList.add('flex');
         
-        // Loglar butonunun kilidini aç (Mavi ve tıklanabilir yap)
         btnLogsLink.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
         
         await loadAppData();
@@ -419,6 +411,9 @@
             await saveSettingsToCloud();
           };
         }
+        
+        // Giriş başarılı olduğunda Kasiyer dinleyicisini başlat
+        setupApprovalListener();
       } else {
         showNotification("Giriş Başarısız", "Hatalı PIN Kodu girdiniz. Lütfen tekrar deneyin.");
       }
@@ -459,6 +454,56 @@
         }
       });
     });
+
+    // ==========================================
+    // YENİ: Kasiyer Onay Dinleyicisi (SweetAlert)
+    // ==========================================
+    function setupApprovalListener() {
+      supabaseClient
+        .channel('public-request-approval')
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'app_settings' }, payload => {
+          if (payload.new.key === 'request_status' && payload.new.value === 'pending') {
+            if (Swal.isVisible()) return;
+
+            let timerInterval;
+            Swal.fire({
+              title: 'Müşteri Çekiliş İstiyor!',
+              html: "Bir müşteri çekiliş yapmak için onay bekliyor.<br><b>Kalan Süre: <span id='swal-timer'>60</span> sn</b>",
+              icon: 'question',
+              showCancelButton: true,
+              confirmButtonColor: '#1e40af',
+              cancelButtonColor: '#991b1b',
+              confirmButtonText: 'Evet, Onayla',
+              cancelButtonText: 'İptal Et',
+              allowOutsideClick: false,
+              allowEscapeKey: false,
+              didOpen: () => {
+                const timerEl = document.getElementById('swal-timer');
+                let timeLeft = 60;
+                timerInterval = setInterval(() => {
+                  timeLeft--;
+                  if (timerEl) timerEl.textContent = timeLeft;
+                  if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    Swal.close();
+                    supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'rejected' }, { onConflict: 'key' });
+                  }
+                }, 1000);
+              },
+              willClose: () => {
+                clearInterval(timerInterval);
+              }
+            }).then(async (result) => {
+              if (result.isConfirmed) {
+                await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'approved' }, { onConflict: 'key' });
+              } else {
+                await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'rejected' }, { onConflict: 'key' });
+              }
+            });
+          }
+        })
+        .subscribe();
+    }
 
     window.onload = async function() {
       await fetchAdminPin();
