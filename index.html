@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Süzener Market - Çekiliş 2</title>
+  <title>Süzener Market - Çekiliş v1.9.0</title>
   <link rel="manifest" href="./manifest.json">
 
   <meta name="theme-color" content="#1e3a8a">
@@ -125,7 +125,7 @@
       
       <div class="w-full flex items-center justify-between mb-3 px-1">
         <span class="text-[10px] font-extrabold uppercase tracking-wider text-white bg-red-800 px-3 py-1.5 rounded-lg shadow-sm">
-          AKTİF SİSTEM <span class="opacity-75">v1.8.2</span>
+          AKTİF SİSTEM <span class="opacity-75">v1.9.0</span>
         </span>
         <span id="txtRemainingStats" class="text-[11px] font-bold text-white bg-red-800 px-3 py-1.5 rounded-lg border border-red-900 shadow-sm">
           Kalan Hediye: 0
@@ -173,7 +173,6 @@
     <p class="text-blue-200 text-center font-medium text-sm mb-2">Lütfen kasiyerin çekilişi onaylamasını bekleyin...</p>
     <p class="text-red-300 font-bold text-xs mb-8" id="countdownText">Kalan Süre: 60 sn</p>
     
-    <!-- İPTAL BUTONU -->
     <button onclick="cancelApprovalRequest()" class="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-xl shadow-lg transition-colors active:scale-95 border border-red-500">
       İptal Et / Vazgeç
     </button>
@@ -245,6 +244,7 @@
     let isSyncing = false;
     let isCooldown = false; 
     let isWaitingForApproval = false; 
+    let isApprovalSystemActive = true; // YENİ
     let approvalCountdown = null;
     
     let autoCloseTimeout = null; 
@@ -335,6 +335,15 @@
           localStorage.setItem('suzener_offline_map', JSON.stringify(slotMapping));
         }
 
+        let { data: settingsData } = await supabaseClient.from('app_settings').select('*');
+        if (settingsData) {
+          settingsData.forEach(s => {
+            if (s.key === 'approval_system') {
+              isApprovalSystemActive = s.value !== 'false';
+            }
+          });
+        }
+
         statusEl.textContent = "Bulut Bağlı (Senkronize)";
         statusEl.className = "text-[10px] font-semibold text-emerald-600";
         dotEl.className = "w-2 h-2 rounded-full bg-emerald-500";
@@ -390,6 +399,9 @@
           .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, payload => {
             if (payload.new.key === 'request_status') {
               handleRequestStatusChange(payload.new.value);
+            }
+            if (payload.new.key === 'approval_system') {
+              isApprovalSystemActive = payload.new.value !== 'false';
             }
           })
           .subscribe();
@@ -447,13 +459,15 @@
 
     async function requestDrawApproval() {
       if (isWaitingForApproval) return;
-      
-      // YENİ: İnternet yoksa onay bekleme, direkt çekilişe başla (Hibrit Mod)
-      if (!navigator.onLine) {
-        showNotification("Çevrimdışı Mod", "İnternet yok. Kasiyer onayı atlanarak çekiliş başlatılıyor...");
-        setTimeout(() => {
+
+      // YENİ: Eğer onay sistemi kapalıysa veya internet yoksa direkt çek
+      if (!isApprovalSystemActive || !navigator.onLine) {
+        if (!isApprovalSystemActive) {
           performActualDraw();
-        }, 1000);
+        } else {
+          showNotification("Çevrimdışı Mod", "İnternet yok. Kasiyer onayı atlanarak çekiliş başlatılıyor...");
+          setTimeout(() => { performActualDraw(); }, 1000);
+        }
         return;
       }
 

@@ -39,7 +39,7 @@
         <i data-lucide="settings" class="w-6 h-6"></i>
       </div>
       <div>
-        <h1 class="text-lg sm:text-xl font-black tracking-tight text-blue-950">Yönetim Paneli <span class="text-xs text-red-800">v1.8.2</span></h1>
+        <h1 class="text-lg sm:text-xl font-black tracking-tight text-blue-950">Yönetim Paneli <span class="text-xs text-red-800">v1.9.0</span></h1>
         <p id="txtConnectionStatus" class="text-[11px] font-bold text-emerald-500 flex items-center gap-1.5 mt-0.5 tracking-wide uppercase">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Bulut Bağlı
         </p>
@@ -76,6 +76,7 @@
       
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       
+      <!-- Algoritma & Havuz Kartı -->
       <div class="bg-white border border-blue-100 rounded-[2rem] p-7 flex flex-col justify-between shadow-[0_8px_30px_rgb(0,0,0,0.04)] animate-slide-up">
         <div>
           <div class="flex items-center gap-3 mb-6">
@@ -85,7 +86,8 @@
             <h3 class="text-sm font-black text-blue-950 tracking-tight">Algoritma & Havuz</h3>
           </div>
 
-          <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 flex items-center justify-between mb-8">
+          <!-- Otomatik Karıştırma -->
+          <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-100 flex items-center justify-between mb-4">
             <div>
               <span class="text-xs font-extrabold text-blue-950 block mb-1">Otomatik Karıştırma</span>
               <span class="text-[11px] text-slate-500 font-medium">Her gece 00:00'da havuzu yenile</span>
@@ -93,6 +95,18 @@
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" id="chkAutoShuffle" class="sr-only peer" checked>
               <div class="w-12 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-sm peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          <!-- YENİ: Kasiyer Onay Sistemi -->
+          <div class="bg-red-50/50 p-5 rounded-2xl border border-red-100 flex items-center justify-between mb-8">
+            <div>
+              <span class="text-xs font-extrabold text-red-950 block mb-1">Kasiyer Onay Sistemi</span>
+              <span class="text-[11px] text-slate-500 font-medium">Kapalıysa direkt çekiliş başlar</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="chkApprovalSystem" class="sr-only peer" checked>
+              <div class="w-12 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-sm peer-checked:bg-red-600"></div>
             </label>
           </div>
         </div>
@@ -173,6 +187,7 @@
     let inventory = [];
     let slotMapping = {};
     let autoShuffleEnabled = true;
+    let approvalSystemEnabled = true;
     let lastShuffleDate = '';
     let currentAdminPin = '1234';
     
@@ -269,6 +284,7 @@
         if (settingsData) {
           settingsData.forEach(s => {
             if (s.key === 'auto_shuffle') autoShuffleEnabled = s.value === 'true';
+            if (s.key === 'approval_system') approvalSystemEnabled = s.value !== 'false'; 
             if (s.key === 'last_shuffle_date') lastShuffleDate = s.value;
           });
         }
@@ -307,6 +323,7 @@
       try {
         await supabaseClient.from('app_settings').upsert([
           { key: 'auto_shuffle', value: String(autoShuffleEnabled) },
+          { key: 'approval_system', value: String(approvalSystemEnabled) },
           { key: 'last_shuffle_date', value: lastShuffleDate }
         ], { onConflict: 'key' });
       } catch (e) {}
@@ -402,16 +419,25 @@
         
         await loadAppData();
 
-        const chk = document.getElementById('chkAutoShuffle');
-        if (chk) {
-          chk.checked = autoShuffleEnabled;
-          chk.onchange = async (e) => {
+        const chkAutoShuffle = document.getElementById('chkAutoShuffle');
+        if (chkAutoShuffle) {
+          chkAutoShuffle.checked = autoShuffleEnabled;
+          chkAutoShuffle.onchange = async (e) => {
             autoShuffleEnabled = e.target.checked;
             await saveSettingsToCloud();
           };
         }
+
+        const chkApproval = document.getElementById('chkApprovalSystem');
+        if (chkApproval) {
+          chkApproval.checked = approvalSystemEnabled;
+          chkApproval.onchange = async (e) => {
+            approvalSystemEnabled = e.target.checked;
+            await saveSettingsToCloud();
+            showNotification("Başarılı", `Kasiyer onay sistemi ${approvalSystemEnabled ? 'açıldı' : 'kapatıldı'}.`);
+          };
+        }
         
-        // Giriş başarılı olduğunda Kasiyer dinleyicisini başlat
         setupApprovalListener();
       } else {
         showNotification("Giriş Başarısız", "Hatalı PIN Kodu girdiniz. Lütfen tekrar deneyin.");
@@ -441,9 +467,30 @@
       showNotification("Başarılı", "Havuz güncel stoklara göre yeniden karıştırıldı.");
     });
 
+    // ==========================================
+    // GÜVENLİ SIFIRLAMA BUTONU (Swal Yapıldı)
+    // ==========================================
     document.getElementById('btnResetDraws').addEventListener('click', () => {
-      showNotification("Emin misiniz?", "Çekilen tüm numaralar sıfırlanacak. Bu işlem geri alınamaz!", true, async (confirmed) => {
-        if (confirmed) {
+      Swal.fire({
+        title: 'DİKKAT! ÇOK TEHLİKELİ İŞLEM',
+        text: 'Tüm çekiliş geçmişi kalıcı olarak silinecek. Bu işlem GERİ ALINAMAZ. Onaylamak için lütfen aşağıya büyük harflerle "SİL" yazın.',
+        icon: 'warning',
+        input: 'text',
+        inputPlaceholder: 'SİL',
+        showCancelButton: true,
+        confirmButtonColor: '#991b1b', 
+        cancelButtonColor: '#64748b',  
+        confirmButtonText: 'Evet, Her Şeyi SİL',
+        cancelButtonText: 'Vazgeç',
+        allowOutsideClick: false,
+        preConfirm: (text) => {
+          if (text !== 'SİL') {
+            Swal.showValidationMessage('Lütfen onaylamak için tam olarak "SİL" yazın!');
+            return false;
+          }
+        }
+      }).then(async (result) => {
+        if (result.isConfirmed) {
           try {
             await supabaseClient.from('drawn_numbers').delete().neq('draw_number', 0);
           } catch(e) {}
@@ -455,7 +502,7 @@
     });
 
     // ==========================================
-    // YENİ: Kasiyer Onay Dinleyicisi (Kalan süre hesabı düzeltildi)
+    // Kasiyer Onay Dinleyicisi 
     // ==========================================
     async function checkPendingApproval() {
       try {
@@ -468,7 +515,7 @@
     }
 
     function setupApprovalListener() {
-      checkPendingApproval(); // Sayfa açıldığında kontrol et
+      checkPendingApproval();
 
       supabaseClient
         .channel('public-request-approval')
@@ -499,7 +546,6 @@
         didOpen: () => {
           const timerEl = document.getElementById('swal-timer');
           
-          // Kalan süreyi hesapla
           const now = Date.now();
           const diffInSeconds = Math.floor((now - requestTime) / 1000);
           let timeLeft = 60 - diffInSeconds;
