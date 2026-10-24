@@ -30,7 +30,6 @@
     }
     .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 
-    /* Zaman Tüneli Çizgisi */
     .date-separator {
       display: flex;
       align-items: center;
@@ -56,7 +55,6 @@
 </head>
 <body class="text-slate-800 p-3 min-h-full flex flex-col justify-center">
 
-  <!-- YETKİSİZ ERİŞİM EKRANI -->
   <div id="authErrorBox" class="hidden text-center bg-white border-2 border-red-200 p-6 rounded-3xl max-w-xs mx-auto shadow-xl">
     <div class="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-3 font-black text-xl border border-red-100">
       <i data-lucide="shield-alert" class="w-6 h-6"></i>
@@ -65,10 +63,8 @@
     <p class="text-xs text-slate-600 leading-relaxed font-semibold">Bu yönetim panelini kullanma yetkiniz bulunmuyor.</p>
   </div>
 
-  <!-- ANA YÖNETİM PANELİ -->
   <main id="mainPanel" class="hidden flex-col flex-1 min-h-full max-w-md mx-auto w-full">
     
-    <!-- Üst Bilgi Kartı -->
     <div class="bg-white border-2 border-blue-100 rounded-3xl p-4 mb-3 flex items-center justify-between shadow-lg">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-red-800 flex items-center justify-center shadow-md text-white">
@@ -84,7 +80,6 @@
       </span>
     </div>
 
-    <!-- SEKMELER (TAB MENU) -->
     <div class="flex bg-white border-2 border-blue-100 p-1 rounded-2xl mb-3 gap-1 shadow-sm">
       <button id="tabBtnStock" onclick="switchTab('stock')" class="flex-1 py-2.5 rounded-xl text-xs font-extrabold bg-blue-600 text-white shadow-md transition-all flex items-center justify-center gap-1.5">
         <i data-lucide="box" class="w-4 h-4"></i> Stok Yönetimi
@@ -94,10 +89,8 @@
       </button>
     </div>
 
-    <!-- ==================== TAB 1: STOK YÖNETİMİ ==================== -->
     <div id="tabStockContent" class="flex-1 flex flex-col">
       
-      <!-- İşlem Butonları -->
       <div class="grid grid-cols-2 gap-2 mb-3">
         <button id="btnTgShuffle" class="py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs active:scale-95 transition-all flex items-center justify-center gap-1.5 shadow-md">
           <i data-lucide="refresh-cw" class="w-4 h-4"></i> Havuzu Karıştır
@@ -107,13 +100,11 @@
         </button>
       </div>
 
-      <!-- Arama Kutusu -->
       <div class="relative mb-3">
         <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
         <input type="text" id="inputTgSearch" oninput="renderTgInventory()" placeholder="Telegram'da ürün ara..." class="w-full bg-white border-2 border-blue-100 rounded-2xl pl-10 pr-4 py-3 text-slate-800 placeholder-slate-400 text-xs font-bold focus:outline-none focus:border-blue-400 shadow-sm transition-colors">
       </div>
 
-      <!-- Stok Listesi -->
       <div class="bg-white border-2 border-blue-100 rounded-3xl p-4 shadow-xl flex-1 flex flex-col">
         <div class="flex items-center justify-between mb-3 pb-2 border-b border-blue-50">
           <span class="text-[11px] font-extrabold text-blue-900 uppercase tracking-wider">Hızlı Stok Güncelleme</span>
@@ -126,10 +117,8 @@
       </div>
     </div>
 
-    <!-- ==================== TAB 2: CANLI LOGLAR ==================== -->
     <div id="tabLogsContent" class="hidden flex-1 flex-col">
       
-      <!-- Log Filtreleme Barları -->
       <div class="flex items-center justify-between gap-2 mb-3">
         <div class="flex-1 flex items-center gap-1.5 bg-white border-2 border-blue-100 px-3 py-2 rounded-xl shadow-sm">
           <i data-lucide="calendar" class="w-4 h-4 text-blue-600"></i>
@@ -147,7 +136,6 @@
         </div>
       </div>
 
-      <!-- Log Listesi Container -->
       <div class="bg-white border-2 border-blue-100 rounded-3xl p-4 shadow-xl flex-1 flex flex-col">
         <div class="flex items-center justify-between mb-3 pb-2 border-b border-blue-50">
           <span class="text-[11px] font-extrabold text-blue-900 uppercase tracking-wider">Zaman Tüneli</span>
@@ -163,7 +151,6 @@
   </main>
 
   <script>
-    // Yetkili Telegram ID'leri
     const ALLOWED_TELEGRAM_IDS = [6595229085]; 
 
     const SUPABASE_URL = 'https://kfrlpvjpivkiojsowbzw.supabase.co'; 
@@ -174,6 +161,7 @@
     let inventory = [];
     let logsList = [];
     let activeTab = 'stock';
+    let tgApprovalOpen = false; // Popup açık mı kontrolü
 
     function checkUserAuth() {
       if (tg) {
@@ -477,42 +465,52 @@
     }
 
     // ==========================================
-    // YENİ: Telegram için Onay Dinleyicisi
+    // YENİ: Telegram Onay Dinleyicisi (Sonradan açılma ve benzersiz kimlik çözümü)
     // ==========================================
+    async function checkPendingApproval() {
+      try {
+        const { data } = await supabaseClient.from('app_settings').select('value').eq('key', 'request_status').single();
+        if (data && data.value && data.value.startsWith('pending')) {
+          showTgApprovalPopup();
+        }
+      } catch(e) {}
+    }
+
+    function showTgApprovalPopup() {
+      if (tgApprovalOpen) return;
+      tgApprovalOpen = true;
+
+      if (tg && tg.showConfirm) {
+        tg.showConfirm("Müşteri çekiliş yapmak istiyor! Parayı aldınız mı?", async (confirmed) => {
+          tgApprovalOpen = false;
+          if (confirmed) {
+            await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'approved' }, { onConflict: 'key' });
+            if (tg) tg.showAlert("Çekiliş Onaylandı!");
+          } else {
+            await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'rejected' }, { onConflict: 'key' });
+            if (tg) tg.showAlert("Çekiliş İptal Edildi!");
+          }
+        });
+      } else {
+        // Eğer Telegram dışında açılırsa tarayıcı alert'i kullan
+        const isConfirmed = confirm("Müşteri çekiliş yapmak istiyor! Parayı aldınız mı?");
+        tgApprovalOpen = false;
+        if (isConfirmed) {
+          supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'approved' }, { onConflict: 'key' });
+        } else {
+          supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'rejected' }, { onConflict: 'key' });
+        }
+      }
+    }
+
     function setupApprovalListener() {
+      checkPendingApproval(); // Sayfa açıldığında kontrol et
+
       supabaseClient
         .channel('public-request-approval-tg')
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'app_settings' }, payload => {
-          if (payload.new.key === 'request_status' && payload.new.value === 'pending') {
-            
-            // Telegram'da zaten açık bir pencere varsa tekrar açma
-            if (window.tgApprovalOpen) return;
-            window.tgApprovalOpen = true;
-
-            let timeLeft = 60;
-            
-            if (tg && tg.showConfirm) {
-              // Telegram'ın kendi onay penceresini kullan
-              tg.showConfirm("Müşteri çekiliş yapmak istiyor! Parayı aldınız mı?", async (confirmed) => {
-                window.tgApprovalOpen = false;
-                if (confirmed) {
-                  await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'approved' }, { onConflict: 'key' });
-                  tg.showAlert("Çekiliş Onaylandı!");
-                } else {
-                  await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'rejected' }, { onConflict: 'key' });
-                  tg.showAlert("Çekiliş İptal Edildi!");
-                }
-              });
-            } else {
-              // Eğer Telegram dışında açılırsa tarayıcı alert'i kullan
-              const isConfirmed = confirm("Müşteri çekiliş yapmak istiyor! Parayı aldınız mı?");
-              window.tgApprovalOpen = false;
-              if (isConfirmed) {
-                supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'approved' }, { onConflict: 'key' });
-              } else {
-                supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'rejected' }, { onConflict: 'key' });
-              }
-            }
+          if (payload.new.key === 'request_status' && payload.new.value.startsWith('pending')) {
+            showTgApprovalPopup();
           }
         })
         .subscribe();
@@ -522,7 +520,7 @@
       if (checkUserAuth()) {
         await loadTgData();
         setupRealtimeLogs();
-        setupApprovalListener(); // Telegram onay dinleyicisini başlat
+        setupApprovalListener(); 
       }
       try { lucide.createIcons(); } catch(e) {}
     };

@@ -346,51 +346,70 @@
         .subscribe();
     }
 
+    // ==========================================
+    // YENİ: Kasiyer Onay Dinleyicisi (Sonradan açılma ve benzersiz kimlik çözümü)
+    // ==========================================
+    async function checkPendingApproval() {
+      try {
+        const { data } = await supabaseClient.from('app_settings').select('value').eq('key', 'request_status').single();
+        if (data && data.value && data.value.startsWith('pending')) {
+          showApprovalPopup();
+        }
+      } catch(e) {}
+    }
+
     function setupApprovalListener() {
+      // Sayfa açıldığında daha önceden kalmış bir talep var mı diye kontrol et
+      checkPendingApproval();
+
       supabaseClient
         .channel('public-request-approval')
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'app_settings' }, payload => {
-          if (payload.new.key === 'request_status' && payload.new.value === 'pending') {
-            if (Swal.isVisible()) return;
-
-            let timerInterval;
-            Swal.fire({
-              title: 'Müşteri Çekiliş İstiyor!',
-              html: "Bir müşteri çekiliş yapmak için onay bekliyor.<br><b>Kalan Süre: <span id='swal-timer'>60</span> sn</b>",
-              icon: 'question',
-              showCancelButton: true,
-              confirmButtonColor: '#1e40af',
-              cancelButtonColor: '#991b1b',
-              confirmButtonText: 'Evet, Onayla',
-              cancelButtonText: 'İptal Et',
-              allowOutsideClick: false,
-              allowEscapeKey: false,
-              didOpen: () => {
-                const timerEl = document.getElementById('swal-timer');
-                let timeLeft = 60;
-                timerInterval = setInterval(() => {
-                  timeLeft--;
-                  if (timerEl) timerEl.textContent = timeLeft;
-                  if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    Swal.close();
-                    supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'rejected' }, { onConflict: 'key' });
-                  }
-                }, 1000);
-              },
-              willClose: () => {
-                clearInterval(timerInterval);
-              }
-            }).then(async (result) => {
-              if (result.isConfirmed) {
-                await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'approved' }, { onConflict: 'key' });
-              } else {
-                await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'rejected' }, { onConflict: 'key' });
-              }
-            });
+          if (payload.new.key === 'request_status' && payload.new.value.startsWith('pending')) {
+            showApprovalPopup();
           }
         })
         .subscribe();
+    }
+
+    function showApprovalPopup() {
+      if (Swal.isVisible()) return;
+
+      let timerInterval;
+      Swal.fire({
+        title: 'Müşteri Çekiliş İstiyor!',
+        html: "Bir müşteri çekiliş yapmak için onay bekliyor.<br><b>Kalan Süre: <span id='swal-timer'>60</span> sn</b>",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#1e40af',
+        cancelButtonColor: '#991b1b',
+        confirmButtonText: 'Evet, Onayla',
+        cancelButtonText: 'İptal Et',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          const timerEl = document.getElementById('swal-timer');
+          let timeLeft = 60;
+          timerInterval = setInterval(() => {
+            timeLeft--;
+            if (timerEl) timerEl.textContent = timeLeft;
+            if (timeLeft <= 0) {
+              clearInterval(timerInterval);
+              Swal.close();
+              supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'rejected' }, { onConflict: 'key' });
+            }
+          }, 1000);
+        },
+        willClose: () => {
+          clearInterval(timerInterval);
+        }
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'approved' }, { onConflict: 'key' });
+        } else {
+          await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'rejected' }, { onConflict: 'key' });
+        }
+      });
     }
 
     window.onload = async function() {

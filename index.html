@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Süzener Market - Çekiliş v1.7</title>
+  <title>Süzener Market - Çekiliş v1.8</title>
   <link rel="manifest" href="./manifest.json">
 
   <meta name="theme-color" content="#1e3a8a">
@@ -123,10 +123,9 @@
 
     <div class="w-full bg-white border-2 border-blue-100 rounded-3xl p-4 sm:p-5 shadow-xl relative flex flex-col items-center">
       
-      <!-- GÜNCELLEME: Yan Yana Kutular -->
       <div class="w-full flex items-center justify-between mb-3 px-1">
         <span class="text-[10px] font-extrabold uppercase tracking-wider text-white bg-red-800 px-3 py-1.5 rounded-lg shadow-sm">
-          AKTİF SİSTEM <span class="opacity-75">v1.7</span>
+          AKTİF SİSTEM <span class="opacity-75">v1.8</span>
         </span>
         <span id="txtRemainingStats" class="text-[11px] font-bold text-white bg-red-800 px-3 py-1.5 rounded-lg border border-red-900 shadow-sm">
           Kalan Hediye: 0
@@ -171,8 +170,13 @@
       <i data-lucide="loader-2" class="w-12 h-12 text-blue-300 animate-spin"></i>
     </div>
     <h2 class="text-2xl font-black text-white mb-2 text-center tracking-tight">Kasiyer Onayı Bekleniyor</h2>
-    <p class="text-blue-200 text-center font-medium text-sm">Lütfen kasiyerin çekilişi onaylamasını bekleyin...</p>
-    <p class="text-red-300 font-bold text-xs mt-2" id="countdownText">Kalan Süre: 60 sn</p>
+    <p class="text-blue-200 text-center font-medium text-sm mb-2">Lütfen kasiyerin çekilişi onaylamasını bekleyin...</p>
+    <p class="text-red-300 font-bold text-xs mb-8" id="countdownText">Kalan Süre: 60 sn</p>
+    
+    <!-- İPTAL BUTONU -->
+    <button onclick="cancelApprovalRequest()" class="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-xl shadow-lg transition-colors active:scale-95 border border-red-500">
+      İptal Et / Vazgeç
+    </button>
   </div>
 
   <!-- REHBER POPUP -->
@@ -393,6 +397,7 @@
     }
 
     async function handleRequestStatusChange(status) {
+      // Hem 'approved' hem de içinde 'approved' geçen durumları kontrol et (Unique ID'ler için)
       if (status === 'approved' && isWaitingForApproval) {
         clearInterval(approvalCountdown);
         isWaitingForApproval = false;
@@ -475,10 +480,13 @@
       }, 1000);
 
       try {
-        await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'pending' }, { onConflict: 'key' });
+        // Zaman damgası ekleyerek her talebi benzersiz yapıyoruz
+        const uniqueRequestId = 'pending_' + Date.now(); 
+        await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: uniqueRequestId }, { onConflict: 'key' });
       } catch (err) {
         try {
-          await supabaseClient.from('app_settings').insert([{ key: 'request_status', value: 'pending' }]);
+          const uniqueRequestId = 'pending_' + Date.now(); 
+          await supabaseClient.from('app_settings').insert([{ key: 'request_status', value: uniqueRequestId }]);
         } catch (e) {
           clearInterval(approvalCountdown);
           showNotification("Hata", "Kasiyerle iletişim kurulamadı.");
@@ -486,6 +494,22 @@
           document.getElementById('waitingApprovalModal').classList.add('hidden');
         }
       }
+    }
+
+    // İPTAL FONKSİYONU
+    window.cancelApprovalRequest = async function() {
+      if (!isWaitingForApproval) return;
+      
+      clearInterval(approvalCountdown);
+      isWaitingForApproval = false;
+      document.getElementById('waitingApprovalModal').classList.add('hidden');
+      
+      try {
+        await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'rejected' }, { onConflict: 'key' });
+      } catch(e) {}
+      
+      showNotification("İptal Edildi", "Çekiliş talebiniz iptal edildi.");
+      resetIdleGuideTimer();
     }
 
     async function performActualDraw() {
