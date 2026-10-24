@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Süzener Market - Çekiliş v1.8</title>
+  <title>Süzener Market - Çekiliş v1.8.1</title>
   <link rel="manifest" href="./manifest.json">
 
   <meta name="theme-color" content="#1e3a8a">
@@ -125,7 +125,7 @@
       
       <div class="w-full flex items-center justify-between mb-3 px-1">
         <span class="text-[10px] font-extrabold uppercase tracking-wider text-white bg-red-800 px-3 py-1.5 rounded-lg shadow-sm">
-          AKTİF SİSTEM <span class="opacity-75">v1.8</span>
+          AKTİF SİSTEM <span class="opacity-75">v1.8.1</span>
         </span>
         <span id="txtRemainingStats" class="text-[11px] font-bold text-white bg-red-800 px-3 py-1.5 rounded-lg border border-red-900 shadow-sm">
           Kalan Hediye: 0
@@ -397,7 +397,6 @@
     }
 
     async function handleRequestStatusChange(status) {
-      // Hem 'approved' hem de içinde 'approved' geçen durumları kontrol et (Unique ID'ler için)
       if (status === 'approved' && isWaitingForApproval) {
         clearInterval(approvalCountdown);
         isWaitingForApproval = false;
@@ -449,8 +448,12 @@
     async function requestDrawApproval() {
       if (isWaitingForApproval) return;
       
+      // YENİ: İnternet yoksa onay bekleme, direkt çekilişe başla (Hibrit Mod)
       if (!navigator.onLine) {
-        showNotification("İnternet Yok", "Çevrimdışı moddasınız. Kasiyer onayı alınamıyor.");
+        showNotification("Çevrimdışı Mod", "İnternet yok. Kasiyer onayı atlanarak çekiliş başlatılıyor...");
+        setTimeout(() => {
+          performActualDraw();
+        }, 1000);
         return;
       }
 
@@ -480,7 +483,6 @@
       }, 1000);
 
       try {
-        // Zaman damgası ekleyerek her talebi benzersiz yapıyoruz
         const uniqueRequestId = 'pending_' + Date.now(); 
         await supabaseClient.from('app_settings').upsert({ key: 'request_status', value: uniqueRequestId }, { onConflict: 'key' });
       } catch (err) {
@@ -496,7 +498,6 @@
       }
     }
 
-    // İPTAL FONKSİYONU
     window.cancelApprovalRequest = async function() {
       if (!isWaitingForApproval) return;
       
