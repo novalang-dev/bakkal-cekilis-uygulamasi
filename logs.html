@@ -347,38 +347,39 @@
     }
 
     // ==========================================
-    // YENİ: Kasiyer Onay Dinleyicisi (Sonradan açılma ve benzersiz kimlik çözümü)
+    // YENİ: Kasiyer Onay Dinleyicisi (Kalan süre hesabı düzeltildi)
     // ==========================================
     async function checkPendingApproval() {
       try {
         const { data } = await supabaseClient.from('app_settings').select('value').eq('key', 'request_status').single();
         if (data && data.value && data.value.startsWith('pending')) {
-          showApprovalPopup();
+          const requestTime = parseInt(data.value.split('_')[1]);
+          showApprovalPopup(requestTime);
         }
       } catch(e) {}
     }
 
     function setupApprovalListener() {
-      // Sayfa açıldığında daha önceden kalmış bir talep var mı diye kontrol et
-      checkPendingApproval();
+      checkPendingApproval(); // Sayfa açıldığında kontrol et
 
       supabaseClient
         .channel('public-request-approval')
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'app_settings' }, payload => {
           if (payload.new.key === 'request_status' && payload.new.value.startsWith('pending')) {
-            showApprovalPopup();
+            const requestTime = parseInt(payload.new.value.split('_')[1]);
+            showApprovalPopup(requestTime);
           }
         })
         .subscribe();
     }
 
-    function showApprovalPopup() {
+    function showApprovalPopup(requestTime) {
       if (Swal.isVisible()) return;
 
       let timerInterval;
       Swal.fire({
         title: 'Müşteri Çekiliş İstiyor!',
-        html: "Bir müşteri çekiliş yapmak için onay bekliyor.<br><b>Kalan Süre: <span id='swal-timer'>60</span> sn</b>",
+        html: "Bir müşteri çekiliş yapmak için onay bekliyor.<br><b>Kalan Süre: <span id='swal-timer'>0</span> sn</b>",
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#1e40af',
@@ -389,7 +390,20 @@
         allowEscapeKey: false,
         didOpen: () => {
           const timerEl = document.getElementById('swal-timer');
-          let timeLeft = 60;
+          
+          // Kalan süreyi hesapla
+          const now = Date.now();
+          const diffInSeconds = Math.floor((now - requestTime) / 1000);
+          let timeLeft = 60 - diffInSeconds;
+
+          if (timeLeft <= 0) {
+            Swal.close();
+            supabaseClient.from('app_settings').upsert({ key: 'request_status', value: 'rejected' }, { onConflict: 'key' });
+            return;
+          }
+
+          if (timerEl) timerEl.textContent = timeLeft;
+
           timerInterval = setInterval(() => {
             timeLeft--;
             if (timerEl) timerEl.textContent = timeLeft;
